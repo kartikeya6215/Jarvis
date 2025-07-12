@@ -2,320 +2,323 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jarvis 2.0 - Your AI Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>JARVIS Ultimate</title>
   <style>
+    :root {
+      --jarvis-blue: #58a6ff;
+      --jarvis-green: #3fb950;
+      --jarvis-red: #ff7b72;
+      --bg-dark: #0b0f17;
+      --card-bg: rgba(15, 20, 30, 0.9);
+      --text-light: #c9d1d9;
+    }
+    
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #0b0f17;
-      color: #c9d1d9;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       min-height: 100vh;
       padding: 20px;
       box-sizing: border-box;
+      line-height: 1.6;
     }
+    
     .container {
-      text-align: center;
       width: 100%;
-      max-width: 700px;
-      background: rgba(15, 20, 30, 0.9);
-      padding: 20px;
+      max-width: 800px;
+      background: var(--card-bg);
+      padding: 25px;
       border-radius: 16px;
-      box-shadow: 0 0 20px rgba(88, 166, 255, 0.3);
+      box-shadow: 0 0 30px rgba(88, 166, 255, 0.2);
+      margin: auto;
     }
+    
     h1 {
-      color: #58a6ff;
-      text-shadow: 0 0 10px #58a6ff;
-      font-size: 1.5rem;
+      color: var(--jarvis-blue);
+      text-shadow: 0 0 15px rgba(88, 166, 255, 0.5);
+      margin-top: 0;
+      font-size: 2rem;
+      text-align: center;
     }
-    #response {
-      margin-top: 20px;
+    
+    #response-container {
+      margin: 25px 0;
       background-color: #161b22;
-      padding: 15px;
-      border-radius: 10px;
-      min-height: 100px;
-      box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+      min-height: 200px;
+      max-height: 400px;
       overflow-y: auto;
-      max-height: 300px;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
-    button {
-      background-color: #238636;
-      color: white;
-      padding: 12px 24px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
+    
+    .message {
+      padding: 10px 15px;
+      border-radius: 8px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    
+    .user-message {
+      background: rgba(88, 166, 255, 0.15);
+      border-left: 3px solid var(--jarvis-blue);
+      align-self: flex-end;
+    }
+    
+    .jarvis-message {
+      background: rgba(63, 185, 80, 0.15);
+      border-left: 3px solid var(--jarvis-green);
+      align-self: flex-start;
+    }
+    
+    .error-message {
+      background: rgba(255, 123, 114, 0.15);
+      border-left: 3px solid var(--jarvis-red);
+    }
+    
+    .controls {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
       margin-top: 20px;
-      box-shadow: 0 0 10px rgba(35, 134, 54, 0.7);
-      width: 100%;
-      max-width: 300px;
     }
+    
+    button {
+      background-color: var(--jarvis-green);
+      color: white;
+      padding: 12px 25px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
     button:hover {
       background-color: #2ea043;
+      transform: translateY(-2px);
     }
-    .command-list {
-      text-align: left;
-      margin-top: 20px;
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    #micButton.listening {
+      animation: pulse 1.5s infinite;
+      background-color: var(--jarvis-red);
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 123, 114, 0.7); }
+      70% { box-shadow: 0 0 0 12px rgba(255, 123, 114, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 123, 114, 0); }
+    }
+    
+    .status {
+      text-align: center;
+      margin: 15px 0;
       font-size: 0.9rem;
+      color: #8b949e;
     }
+    
+    .command-list {
+      background: rgba(22, 27, 34, 0.7);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 25px;
+    }
+    
     .command-list h3 {
-      color: #58a6ff;
+      color: var(--jarvis-blue);
+      margin-top: 0;
       margin-bottom: 10px;
     }
+    
     .command-list ul {
       padding-left: 20px;
+      margin: 0;
+      columns: 2;
     }
+    
     .command-list li {
       margin-bottom: 8px;
+      break-inside: avoid;
     }
-    .status {
-      font-size: 0.8rem;
-      color: #8b949e;
-      margin-top: 10px;
-    }
-    .user {
-      color: #58a6ff;
-      margin-bottom: 8px;
-    }
-    .jarvis {
-      color: #3fb950;
-      margin-bottom: 8px;
-    }
-    .error {
-      color: #ff7b72;
-      margin-bottom: 8px;
-    }
-    .pulse {
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0.7); }
-      70% { box-shadow: 0 0 0 10px rgba(35, 134, 54, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0); }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .command-list ul {
+        columns: 1;
+      }
+      
+      button {
+        min-width: 100%;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Welcome back, Sir — I'm Jarvis 2.0</h1>
-    <p>Your personal AI assistant. Speak commands in English or Hinglish.</p>
-    <button id="micButton" class="pulse" onclick="startJarvis()">🎤 Start Jarvis</button>
-    <div id="status" class="status">Initializing...</div>
-    <div id="response">Jarvis: Loading services...</div>
+    <h1>JARVIS ULTIMATE</h1>
+    <p style="text-align: center;">Your complete AI assistant. Speak naturally in English or Hinglish.</p>
+    
+    <div id="response-container">
+      <div class="message jarvis-message">JARVIS: Initializing systems...</div>
+    </div>
+    
+    <div class="status" id="status">Status: Ready</div>
+    
+    <div class="controls">
+      <button id="micButton" onclick="toggleListening()">
+        <span id="micIcon">🎤</span> <span id="micText">Start Listening</span>
+      </button>
+      <button onclick="resetConversation()">
+        🔄 Reset Conversation
+      </button>
+    </div>
     
     <div class="command-list">
-      <h3>Try these commands:</h3>
+      <h3>Available Commands:</h3>
       <ul>
-        <li>"Open YouTube"</li>
-        <li>"Play music" or "Play lofi"</li>
+        <li>"Open YouTube/Gmail"</li>
+        <li>"Play music/lofi"</li>
         <li>"What's the time?"</li>
         <li>"Show me the news"</li>
-        <li>"Who is the CM of Haryana?"</li>
-        <li>"How are you?" or "Kaise ho?"</li>
-        <li>"Stop listening" to deactivate</li>
+        <li>"Who is [person]?"</li>
+        <li>"Set reminder for [time]"</li>
+        <li>"How's the weather?"</li>
+        <li>"Tell me a joke"</li>
+        <li>"Calculate [math problem]"</li>
+        <li>"Stop listening"</li>
       </ul>
     </div>
   </div>
 
   <script>
-    const synth = window.speechSynthesis;
-    const responseBox = document.getElementById('response');
+    // System Configuration
+    const config = {
+      userName: "Sir",
+      assistantName: "JARVIS",
+      defaultVoice: {
+        lang: 'en-IN',
+        rate: 1.0,
+        pitch: 0.9
+      },
+      services: {
+        youtube: "https://youtube.com",
+        music: "https://youtube.com/watch?v=jfKfPfyJRdk",
+        news: "https://news.google.com",
+        maps: "https://maps.google.com",
+        gmail: "https://mail.google.com"
+      }
+    };
+
+    // DOM Elements
+    const responseContainer = document.getElementById('response-container');
     const statusElement = document.getElementById('status');
     const micButton = document.getElementById('micButton');
+    const micIcon = document.getElementById('micIcon');
+    const micText = document.getElementById('micText');
     
+    // System State
     let recognition;
     let isListening = false;
     let isInitialized = false;
+    let conversationHistory = [];
+    let speechSynthesis = window.speechSynthesis;
+    let maleVoice;
 
-    function initializeJarvis() {
+    // Initialize JARVIS
+    async function initializeJarvis() {
+      addMessage(config.assistantName, "Initializing all systems...");
+      
+      // Load voices
+      await loadVoices();
+      
+      // Check for speech recognition support
+      if (!('webkitSpeechRecognition' in window)) {
+        showError("Speech recognition not supported in your browser");
+        return false;
+      }
+      
+      // Check microphone permissions
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+      } catch (error) {
+        showError("Microphone access denied. Please enable permissions.");
+        return false;
+      }
+      
+      isInitialized = true;
+      addMessage(config.assistantName, `Systems online. How may I assist you today, ${config.userName}?`);
+      speak(`Systems online. How may I assist you today, ${config.userName}?`);
+      return true;
+    }
+
+    // Load available voices
+    function loadVoices() {
       return new Promise((resolve) => {
-        // Check for speech synthesis support
-        if (!synth) {
-          statusElement.textContent = "Error: Speech synthesis not supported";
-          responseBox.innerHTML += '<div class="error">Your browser doesn\'t support speech synthesis</div>';
-          return resolve(false);
-        }
-
-        // Check for speech recognition support
-        if (!('webkitSpeechRecognition' in window) {
-          statusElement.textContent = "Error: Speech recognition not supported";
-          responseBox.innerHTML += '<div class="error">Your browser doesn\'t support speech recognition</div>';
-          return resolve(false);
-        }
-
-        // Load voices
-        let voicesLoaded = false;
-        const loadVoices = () => {
-          const voices = synth.getVoices();
-          if (voices.length > 0) {
-            voicesLoaded = true;
-            resolve(true);
-          }
-        };
-
-        if (synth.getVoices().length > 0) {
-          voicesLoaded = true;
-          resolve(true);
+        const voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          maleVoice = voices.find(v => v.name.includes('Male') || v.lang.includes('en'));
+          resolve();
         } else {
-          synth.onvoiceschanged = loadVoices;
-          setTimeout(() => {
-            if (!voicesLoaded) {
-              statusElement.textContent = "Warning: Voice loading delayed";
-              resolve(true); // Continue even if voices take time
-            }
-          }, 1000);
+          speechSynthesis.onvoiceschanged = () => {
+            maleVoice = speechSynthesis.getVoices().find(v => v.name.includes('Male') || v.lang.includes('en'));
+            resolve();
+          };
         }
       });
     }
 
+    // Voice synthesis
     function speak(text) {
-      if (!synth) return;
-      
-      if (synth.speaking) {
-        synth.cancel();
+      if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
       }
       
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'en-IN';
-      utter.rate = 1.0;
-      utter.pitch = 0.9;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = config.defaultVoice.lang;
+      utterance.rate = config.defaultVoice.rate;
+      utterance.pitch = config.defaultVoice.pitch;
       
-      // Try to find a male voice
-      const voices = synth.getVoices();
-      const maleVoice = voices.find(v => v.name.includes('Male') || v.lang.includes('en-IN'));
       if (maleVoice) {
-        utter.voice = maleVoice;
+        utterance.voice = maleVoice;
       }
       
-      synth.speak(utter);
-    }
-
-    function startListening() {
-      try {
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-IN';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-        
-        recognition.onstart = function() {
-          isListening = true;
-          micButton.textContent = "🛑 Stop Listening";
-          statusElement.textContent = "Listening...";
-          responseBox.innerHTML += '<div class="user">You: Listening...</div>';
-          scrollToBottom();
-        };
-        
-        recognition.onresult = function(event) {
-          const command = event.results[0][0].transcript;
-          responseBox.innerHTML += `<div class="user">You: ${command}</div>`;
-          scrollToBottom();
-          handleCommand(command.toLowerCase());
-        };
-        
-        recognition.onerror = function(event) {
-          console.error("Recognition error:", event.error);
-          if (event.error === 'not-allowed') {
-            responseBox.innerHTML += '<div class="error">Microphone access denied. Please enable permissions.</div>';
-            speak("Sir, I need microphone permissions to work properly.");
-          } else {
-            responseBox.innerHTML += `<div class="error">Error: ${event.error}</div>`;
-          }
-          stopListening();
-          scrollToBottom();
-        };
-        
-        recognition.onend = function() {
-          if (isListening) {
-            recognition.start();
-          }
-        };
-        
-        recognition.start();
-      } catch (error) {
-        console.error("Recognition init error:", error);
-        responseBox.innerHTML += '<div class="error">Error initializing speech recognition</div>';
-        scrollToBottom();
-      }
-    }
-
-    function stopListening() {
-      if (recognition) {
-        recognition.stop();
-      }
-      isListening = false;
-      micButton.textContent = "🎤 Start Listening";
-      statusElement.textContent = "Ready";
-      responseBox.innerHTML += '<div class="user">You: Stopped listening</div>';
-      scrollToBottom();
-    }
-
-    function scrollToBottom() {
-      responseBox.scrollTop = responseBox.scrollHeight;
-    }
-
-    function handleCommand(command) {
-      let response = "";
-
-      if (command.includes("youtube") || command.includes("open youtube")) {
-        response = "Opening YouTube, Sir.";
-        setTimeout(() => window.open("https://www.youtube.com", "_blank"), 1000);
-
-      } else if (command.includes("lofi") || command.includes("play music") || command.includes("gaana chalao")) {
-        response = "Playing relaxing music, Sir.";
-        setTimeout(() => window.open("https://www.youtube.com/watch?v=jfKfPfyJRdk", "_blank"), 1000);
-
-      } else if (command.includes("time") || command.includes("samay") || command.includes("kitne baje")) {
-        const now = new Date();
-        response = `It is ${now.toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})}`;
-
-      } else if (command.includes("news") || command.includes("current affairs") || command.includes("khabar")) {
-        response = "Fetching today's news...";
-        setTimeout(() => window.open("https://www.google.com/search?q=current+affairs", "_blank"), 1500);
-
-      } else if (command.includes("cm of haryana") || command.includes("haryana cm") || command.includes("haryana ka mukhyamantri")) {
-        response = "The Chief Minister of Haryana is Shri Nayab Singh Saini.";
-
-      } else if (command.includes("remind me") || command.includes("yaad dila")) {
-        response = "Reminder noted, Sir. Although I can't set system alarms yet.";
-
-      } else if (command.includes("how are you") || command.includes("kaisa hai") || command.includes("kaise ho")) {
-        response = "I'm functioning perfectly, Sir. Ready to assist.";
-
-      } else if (command.includes("stop") || command.includes("band karo") || command.includes("ruk jao")) {
-        response = "Stopping as requested, Sir.";
-
-      } else if (command.includes("thank you") || command.includes("dhanyavaad") || command.includes("shukriya")) {
-        response = "You're welcome, Sir. Always happy to assist.";
-
-      } else {
-        response = "I didn't understand that command yet, Sir. Please try something else.";
-      }
-
-      speak(response);
-      responseBox.innerHTML += `<div class="jarvis">Jarvis: ${response}</div>`;
-      scrollToBottom();
-    }
-
-    async function startJarvis() {
-      if (!isInitialized) {
-        micButton.disabled = true;
-        statusElement.textContent = "Initializing services...";
-        
-        const initialized = await initializeJarvis();
-        if (!initialized) {
-          micButton.disabled = false;
-          return;
+      utterance.onend = () => {
+        if (isListening) {
+          startListening();
         }
-        
-        isInitialized = true;
-        statusElement.textContent = "Ready";
-        responseBox.innerHTML = '<div class="jarvis">Jarvis: Hello Sir, how may I assist you today?</div>';
-        speak("Hello Sir, Jarvis at your service. How may I assist you today?");
+      };
+      
+      speechSynthesis.speak(utterance);
+    }
+
+    // Toggle listening state
+    async function toggleListening() {
+      if (!isInitialized) {
+        const initialized = await initializeJarvis();
+        if (!initialized) return;
       }
       
       if (isListening) {
@@ -325,13 +328,187 @@
       }
     }
 
-    // Initial setup
-    window.onload = function() {
-      // Check if we're running on HTTPS (required for microphone access)
-      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-        responseBox.innerHTML = '<div class="error">Warning: Microphone access requires HTTPS or localhost</div>';
+    // Start speech recognition
+    function startListening() {
+      try {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-IN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.continuous = true;
+        
+        recognition.onstart = () => {
+          isListening = true;
+          micButton.classList.add('listening');
+          micIcon.textContent = '🛑';
+          micText.textContent = 'Listening...';
+          statusElement.textContent = 'Status: Active Listening';
+          addMessage("System", "Listening for commands...");
+        };
+        
+        recognition.onresult = (event) => {
+          const command = event.results[event.results.length - 1][0].transcript;
+          addMessage("You", command);
+          processCommand(command);
+        };
+        
+        recognition.onerror = (event) => {
+          if (event.error === 'not-allowed') {
+            showError("Microphone access denied. Please enable permissions.");
+          } else {
+            showError(`Recognition error: ${event.error}`);
+          }
+          stopListening();
+        };
+        
+        recognition.onend = () => {
+          if (isListening) {
+            recognition.start();
+          }
+        };
+        
+        recognition.start();
+      } catch (error) {
+        showError(`Failed to start recognition: ${error}`);
       }
-    };
+    }
+
+    // Stop speech recognition
+    function stopListening() {
+      if (recognition) {
+        recognition.stop();
+      }
+      isListening = false;
+      micButton.classList.remove('listening');
+      micIcon.textContent = '🎤';
+      micText.textContent = 'Start Listening';
+      statusElement.textContent = 'Status: Ready';
+      addMessage("System", "Listening stopped");
+    }
+
+    // Process user commands
+    function processCommand(command) {
+      const lowerCommand = command.toLowerCase();
+      let response = "";
+      let action = null;
+      
+      // Command processing
+      if (lowerCommand.includes('youtube')) {
+        response = "Opening YouTube, Sir.";
+        action = () => window.open(config.services.youtube, '_blank');
+      
+      } else if (lowerCommand.includes('play music') || lowerCommand.includes('lofi') || lowerCommand.includes('gaana')) {
+        response = "Playing relaxing music, Sir.";
+        action = () => window.open(config.services.music, '_blank');
+      
+      } else if (lowerCommand.includes('time') || lowerCommand.includes('samay') || lowerCommand.includes('baje')) {
+        const now = new Date();
+        response = `The current time is ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+      
+      } else if (lowerCommand.includes('news') || lowerCommand.includes('khabar')) {
+        response = "Fetching the latest news headlines, Sir.";
+        action = () => window.open(config.services.news, '_blank');
+      
+      } else if (lowerCommand.includes('gmail') || lowerCommand.includes('email')) {
+        response = "Opening Gmail, Sir.";
+        action = () => window.open(config.services.gmail, '_blank');
+      
+      } else if (lowerCommand.includes('map') || lowerCommand.includes('location')) {
+        response = "Opening Google Maps, Sir.";
+        action = () => window.open(config.services.maps, '_blank');
+      
+      } else if (lowerCommand.includes('who is') || lowerCommand.includes('cm of')) {
+        const query = command.split('who is')[1] || command.split('cm of')[1] || "";
+        response = `Searching for information about ${query.trim() || 'that'}, Sir.`;
+        action = () => window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+      
+      } else if (lowerCommand.includes('weather') || lowerCommand.includes('mausam')) {
+        response = "Checking weather information, Sir.";
+        action = () => window.open('https://www.google.com/search?q=weather', '_blank');
+      
+      } else if (lowerCommand.includes('calculate') || lowerCommand.includes('math')) {
+        const mathProblem = command.split('calculate')[1] || "";
+        try {
+          const result = eval(mathProblem);
+          response = `The result is ${result}`;
+        } catch {
+          response = "I couldn't solve that math problem, Sir.";
+        }
+      
+      } else if (lowerCommand.includes('joke') || lowerCommand.includes('hasya')) {
+        const jokes = [
+          "Why don't scientists trust atoms? Because they make up everything!",
+          "Did you hear about the mathematician who's afraid of negative numbers? He'll stop at nothing to avoid them.",
+          "Why don't skeletons fight each other? They don't have the guts!"
+        ];
+        response = jokes[Math.floor(Math.random() * jokes.length)];
+      
+      } else if (lowerCommand.includes('thank you') || lowerCommand.includes('dhanyavaad')) {
+        response = "You're welcome, Sir. Always happy to assist.";
+      
+      } else if (lowerCommand.includes('how are you') || lowerCommand.includes('kaise ho')) {
+        response = "All systems operational at peak efficiency, Sir. How may I assist you?";
+      
+      } else if (lowerCommand.includes('stop') || lowerCommand.includes('band')) {
+        response = "Standing by, Sir.";
+        stopListening();
+      
+      } else {
+        response = "I didn't understand that command, Sir. Please try again or say 'help' for available commands.";
+      }
+      
+      // Execute response
+      addMessage(config.assistantName, response);
+      speak(response);
+      
+      if (action) {
+        setTimeout(action, 1500);
+      }
+    }
+
+    // UI Helpers
+    function addMessage(sender, text) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message');
+      
+      if (sender === config.assistantName) {
+        messageDiv.classList.add('jarvis-message');
+        messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      } else if (sender === "System") {
+        messageDiv.classList.add('error-message');
+        messageDiv.innerHTML = `<em>${text}</em>`;
+      } else {
+        messageDiv.classList.add('user-message');
+        messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      }
+      
+      responseContainer.appendChild(messageDiv);
+      scrollToBottom();
+    }
+
+    function showError(message) {
+      addMessage("System", message);
+      speak(`Error: ${message}`);
+    }
+
+    function scrollToBottom() {
+      responseContainer.scrollTop = responseContainer.scrollHeight;
+    }
+
+    function resetConversation() {
+      responseContainer.innerHTML = '';
+      conversationHistory = [];
+      addMessage(config.assistantName, "Conversation reset. How may I assist you, Sir?");
+      speak("Conversation reset. How may I assist you, Sir?");
+    }
+
+    // Initialize on load
+    window.addEventListener('load', () => {
+      if (window.location.protocol !== 'https:' && !window.location.hostname.includes('localhost')) {
+        showError("For full functionality, please use HTTPS or localhost");
+      }
+      initializeJarvis();
+    });
   </script>
 </body>
 </html>
