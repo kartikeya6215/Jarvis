@@ -224,10 +224,11 @@
       },
       services: {
         youtube: "https://youtube.com",
-        music: "https://youtube.com/watch?v=jfKfPfyJRdk",
+        music: "https://music.youtube.com",
         news: "https://news.google.com",
         maps: "https://maps.google.com",
-        gmail: "https://mail.google.com"
+        gmail: "https://mail.google.com",
+        whatsapp: "https://web.whatsapp.com"
       }
     };
 
@@ -307,7 +308,7 @@
       
       utterance.onend = () => {
         if (isListening) {
-          startListening();
+          setTimeout(startListening, 500);
         }
       };
       
@@ -328,42 +329,47 @@
       }
     }
 
-    // Start speech recognition
+    // Start speech recognition (Optimized Version)
     function startListening() {
       try {
+        if (recognition) {
+          recognition.stop();
+          recognition = null;
+        }
+        
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'en-IN';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
-        recognition.continuous = true;
+        recognition.continuous = false; // Single utterance mode
         
         recognition.onstart = () => {
           isListening = true;
           micButton.classList.add('listening');
           micIcon.textContent = '🛑';
           micText.textContent = 'Listening...';
-          statusElement.textContent = 'Status: Active Listening';
-          addMessage("System", "Listening for commands...");
+          statusElement.textContent = 'Status: Active (Speak Now)';
+          addMessage("System", "Ready for your command...");
         };
         
         recognition.onresult = (event) => {
-          const command = event.results[event.results.length - 1][0].transcript;
-          addMessage("You", command);
-          processCommand(command);
+          const command = event.results[0][0].transcript;
+          if (command.trim().length > 2) { // Minimum 3 characters
+            addMessage("You", command);
+            processCommand(command);
+          }
         };
         
         recognition.onerror = (event) => {
-          if (event.error === 'not-allowed') {
-            showError("Microphone access denied. Please enable permissions.");
-          } else {
-            showError(`Recognition error: ${event.error}`);
+          if (event.error !== 'no-speech') { // Ignore background noise
+            showError(`Error: ${event.error}`);
           }
           stopListening();
         };
         
         recognition.onend = () => {
           if (isListening) {
-            recognition.start();
+            setTimeout(startListening, 1000); // Restart with delay
           }
         };
         
@@ -386,84 +392,59 @@
       addMessage("System", "Listening stopped");
     }
 
-    // Process user commands
+    // Process user commands (Optimized Version)
     function processCommand(command) {
       const lowerCommand = command.toLowerCase();
       let response = "";
-      let action = null;
       
-      // Command processing
+      // Direct app opening commands
       if (lowerCommand.includes('youtube')) {
         response = "Opening YouTube, Sir.";
-        action = () => window.open(config.services.youtube, '_blank');
+        window.location.href = config.services.youtube;
       
-      } else if (lowerCommand.includes('play music') || lowerCommand.includes('lofi') || lowerCommand.includes('gaana')) {
-        response = "Playing relaxing music, Sir.";
-        action = () => window.open(config.services.music, '_blank');
-      
-      } else if (lowerCommand.includes('time') || lowerCommand.includes('samay') || lowerCommand.includes('baje')) {
-        const now = new Date();
-        response = `The current time is ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
-      
-      } else if (lowerCommand.includes('news') || lowerCommand.includes('khabar')) {
-        response = "Fetching the latest news headlines, Sir.";
-        action = () => window.open(config.services.news, '_blank');
+      } else if (lowerCommand.includes('play music') || lowerCommand.includes('lofi')) {
+        response = "Playing music, Sir.";
+        window.location.href = config.services.music;
       
       } else if (lowerCommand.includes('gmail') || lowerCommand.includes('email')) {
         response = "Opening Gmail, Sir.";
-        action = () => window.open(config.services.gmail, '_blank');
+        window.location.href = config.services.gmail;
+      
+      } else if (lowerCommand.includes('whatsapp')) {
+        response = "Opening WhatsApp, Sir.";
+        window.location.href = config.services.whatsapp;
+      
+      } else if (lowerCommand.includes('time') || lowerCommand.includes('samay')) {
+        const now = new Date();
+        response = `It's ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+      
+      } else if (lowerCommand.includes('news') || lowerCommand.includes('khabar')) {
+        response = "Showing news headlines, Sir.";
+        window.location.href = config.services.news;
       
       } else if (lowerCommand.includes('map') || lowerCommand.includes('location')) {
         response = "Opening Google Maps, Sir.";
-        action = () => window.open(config.services.maps, '_blank');
+        window.location.href = config.services.maps;
       
       } else if (lowerCommand.includes('who is') || lowerCommand.includes('cm of')) {
         const query = command.split('who is')[1] || command.split('cm of')[1] || "";
-        response = `Searching for information about ${query.trim() || 'that'}, Sir.`;
-        action = () => window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+        response = `Searching for ${query.trim() || 'that'}, Sir.`;
+        window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
       
       } else if (lowerCommand.includes('weather') || lowerCommand.includes('mausam')) {
-        response = "Checking weather information, Sir.";
-        action = () => window.open('https://www.google.com/search?q=weather', '_blank');
-      
-      } else if (lowerCommand.includes('calculate') || lowerCommand.includes('math')) {
-        const mathProblem = command.split('calculate')[1] || "";
-        try {
-          const result = eval(mathProblem);
-          response = `The result is ${result}`;
-        } catch {
-          response = "I couldn't solve that math problem, Sir.";
-        }
-      
-      } else if (lowerCommand.includes('joke') || lowerCommand.includes('hasya')) {
-        const jokes = [
-          "Why don't scientists trust atoms? Because they make up everything!",
-          "Did you hear about the mathematician who's afraid of negative numbers? He'll stop at nothing to avoid them.",
-          "Why don't skeletons fight each other? They don't have the guts!"
-        ];
-        response = jokes[Math.floor(Math.random() * jokes.length)];
-      
-      } else if (lowerCommand.includes('thank you') || lowerCommand.includes('dhanyavaad')) {
-        response = "You're welcome, Sir. Always happy to assist.";
-      
-      } else if (lowerCommand.includes('how are you') || lowerCommand.includes('kaise ho')) {
-        response = "All systems operational at peak efficiency, Sir. How may I assist you?";
+        response = "Checking weather, Sir.";
+        window.location.href = "https://www.google.com/search?q=weather";
       
       } else if (lowerCommand.includes('stop') || lowerCommand.includes('band')) {
         response = "Standing by, Sir.";
         stopListening();
       
       } else {
-        response = "I didn't understand that command, Sir. Please try again or say 'help' for available commands.";
+        response = "I didn't understand that command, Sir.";
       }
       
-      // Execute response
       addMessage(config.assistantName, response);
       speak(response);
-      
-      if (action) {
-        setTimeout(action, 1500);
-      }
     }
 
     // UI Helpers
@@ -488,7 +469,6 @@
 
     function showError(message) {
       addMessage("System", message);
-      speak(`Error: ${message}`);
     }
 
     function scrollToBottom() {
