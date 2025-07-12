@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>JARVIS Ultimate</title>
+  <title>JARVIS Pro</title>
   <style>
     :root {
       --jarvis-blue: #58a6ff;
@@ -177,7 +177,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>JARVIS ULTIMATE</h1>
+    <h1>JARVIS Pro</h1>
     <p style="text-align: center;">Your complete AI assistant. Speak naturally in English or Hinglish.</p>
     
     <div id="response-container">
@@ -199,11 +199,12 @@
       <h3>Available Commands:</h3>
       <ul>
         <li>"Open YouTube/Gmail"</li>
+        <li>"Open Phone/Camera/Gallery"</li>
+        <li>"Open Facebook/Instagram"</li>
         <li>"Play music/lofi"</li>
         <li>"What's the time?"</li>
         <li>"Show me the news"</li>
         <li>"Who is [person]?"</li>
-        <li>"Set reminder for [time]"</li>
         <li>"How's the weather?"</li>
         <li>"Tell me a joke"</li>
         <li>"Calculate [math problem]"</li>
@@ -213,22 +214,62 @@
   </div>
 
   <script>
-    // System Configuration
+    // Enhanced System Configuration
     const config = {
       userName: "Sir",
-      assistantName: "JARVIS",
+      assistantName: "JARVIS Pro",
       defaultVoice: {
         lang: 'en-IN',
         rate: 1.0,
         pitch: 0.9
       },
       services: {
+        // Web URLs
         youtube: "https://youtube.com",
         music: "https://music.youtube.com",
         news: "https://news.google.com",
         maps: "https://maps.google.com",
         gmail: "https://mail.google.com",
-        whatsapp: "https://web.whatsapp.com"
+        whatsapp: "https://web.whatsapp.com",
+        
+        // Native App Deep Links (Android)
+        phone: "tel:",
+        contacts: "content://contacts/people/",
+        camera: "android.media.action.IMAGE_CAPTURE",
+        gallery: "content://media/external/images/media",
+        settings: "android.settings.SETTINGS",
+        calculator: "calc:",
+        clock: "clock:",
+        messages: "sms:",
+        facebook: "fb://",
+        instagram: "instagram://",
+        twitter: "twitter://",
+        chrome: "googlechrome://",
+        photos: "googlephotos://",
+        drive: "googledrive://",
+        playstore: "market://"
+      },
+      appNames: {
+        youtube: "vnd.youtube://",
+        phone: "tel:",
+        contacts: "content://contacts/people/",
+        camera: "android.media.action.IMAGE_CAPTURE",
+        gallery: "content://media/external/images/media",
+        settings: "android.settings.SETTINGS",
+        calculator: "calc:",
+        clock: "clock:",
+        messages: "sms:",
+        facebook: "fb://",
+        instagram: "instagram://",
+        twitter: "twitter://",
+        whatsapp: "whatsapp://",
+        chrome: "googlechrome://",
+        photos: "googlephotos://",
+        drive: "googledrive://",
+        playstore: "market://",
+        music: "com.google.android.music://",
+        maps: "google.navigation://",
+        gmail: "googlegmail://"
       }
     };
 
@@ -243,7 +284,6 @@
     let recognition;
     let isListening = false;
     let isInitialized = false;
-    let conversationHistory = [];
     let speechSynthesis = window.speechSynthesis;
     let maleVoice;
 
@@ -392,59 +432,137 @@
       addMessage("System", "Listening stopped");
     }
 
-    // Process user commands (Optimized Version)
+    // Enhanced processCommand() with native app support
     function processCommand(command) {
       const lowerCommand = command.toLowerCase();
       let response = "";
+      let shouldOpen = false;
+      let url = "";
+      let isNativeApp = false;
+      let appName = "";
       
-      // Direct app opening commands
+      // Extract app name from "open [appname]" commands
+      if (lowerCommand.startsWith('open ')) {
+        appName = lowerCommand.replace('open ', '').trim();
+        
+        // Check if we have a deep link for this app
+        if (config.appNames[appName]) {
+          response = `Opening ${appName}, Sir.`;
+          url = config.appNames[appName];
+          shouldOpen = true;
+          isNativeApp = true;
+        }
+      }
+      
+      // Specific command processing
       if (lowerCommand.includes('youtube')) {
         response = "Opening YouTube, Sir.";
-        window.location.href = config.services.youtube;
-      
-      } else if (lowerCommand.includes('play music') || lowerCommand.includes('lofi')) {
+        try {
+          // Try native app first
+          window.location.href = "vnd.youtube://";
+          isNativeApp = true;
+        } catch (e) {
+          // Fallback to web
+          url = config.services.youtube;
+          shouldOpen = true;
+        }
+      }
+      else if (lowerCommand.includes('play music') || lowerCommand.includes('lofi')) {
         response = "Playing music, Sir.";
-        window.location.href = config.services.music;
-      
-      } else if (lowerCommand.includes('gmail') || lowerCommand.includes('email')) {
+        try {
+          window.location.href = "com.google.android.music://";
+          isNativeApp = true;
+        } catch (e) {
+          url = config.services.music;
+          shouldOpen = true;
+        }
+      }
+      else if (lowerCommand.includes('gmail') || lowerCommand.includes('email')) {
         response = "Opening Gmail, Sir.";
-        window.location.href = config.services.gmail;
-      
-      } else if (lowerCommand.includes('whatsapp')) {
+        try {
+          window.location.href = "googlegmail://";
+          isNativeApp = true;
+        } catch (e) {
+          url = config.services.gmail;
+          shouldOpen = true;
+        }
+      }
+      else if (lowerCommand.includes('whatsapp')) {
         response = "Opening WhatsApp, Sir.";
-        window.location.href = config.services.whatsapp;
-      
-      } else if (lowerCommand.includes('time') || lowerCommand.includes('samay')) {
+        try {
+          window.location.href = "whatsapp://";
+          isNativeApp = true;
+        } catch (e) {
+          url = config.services.whatsapp;
+          shouldOpen = true;
+        }
+      }
+      else if (lowerCommand.includes('time') || lowerCommand.includes('samay')) {
         const now = new Date();
         response = `It's ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
-      
-      } else if (lowerCommand.includes('news') || lowerCommand.includes('khabar')) {
+      }
+      else if (lowerCommand.includes('news') || lowerCommand.includes('khabar')) {
         response = "Showing news headlines, Sir.";
-        window.location.href = config.services.news;
-      
-      } else if (lowerCommand.includes('map') || lowerCommand.includes('location')) {
+        url = config.services.news;
+        shouldOpen = true;
+      }
+      else if (lowerCommand.includes('map') || lowerCommand.includes('location')) {
         response = "Opening Google Maps, Sir.";
-        window.location.href = config.services.maps;
-      
-      } else if (lowerCommand.includes('who is') || lowerCommand.includes('cm of')) {
+        try {
+          window.location.href = "google.navigation://";
+          isNativeApp = true;
+        } catch (e) {
+          url = config.services.maps;
+          shouldOpen = true;
+        }
+      }
+      else if (lowerCommand.includes('who is') || lowerCommand.includes('cm of')) {
         const query = command.split('who is')[1] || command.split('cm of')[1] || "";
         response = `Searching for ${query.trim() || 'that'}, Sir.`;
-        window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-      
-      } else if (lowerCommand.includes('weather') || lowerCommand.includes('mausam')) {
+        url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+        shouldOpen = true;
+      }
+      else if (lowerCommand.includes('weather') || lowerCommand.includes('mausam')) {
         response = "Checking weather, Sir.";
-        window.location.href = "https://www.google.com/search?q=weather";
-      
-      } else if (lowerCommand.includes('stop') || lowerCommand.includes('band')) {
+        url = "https://www.google.com/search?q=weather";
+        shouldOpen = true;
+      }
+      else if (lowerCommand.includes('stop') || lowerCommand.includes('band')) {
         response = "Standing by, Sir.";
         stopListening();
-      
-      } else {
+      }
+      else if (!response) {
         response = "I didn't understand that command, Sir.";
       }
       
+      // Execute response
       addMessage(config.assistantName, response);
       speak(response);
+      
+      if (shouldOpen && url) {
+        setTimeout(() => {
+          if (isNativeApp) {
+            // Try native app deep link
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = url;
+            document.body.appendChild(iframe);
+            setTimeout(() => document.body.removeChild(iframe), 100);
+            
+            // Fallback to web after delay if native app fails
+            setTimeout(() => {
+              if (!document.hidden) {
+                window.location.href = url.includes('://') ? url : config.services[lowerCommand] || url;
+              }
+            }, 500);
+          } else {
+            window.location.href = url;
+          }
+        }, 1500);
+      }
+      
+      // Always stop after processing command
+      stopListening();
     }
 
     // UI Helpers
@@ -477,7 +595,6 @@
 
     function resetConversation() {
       responseContainer.innerHTML = '';
-      conversationHistory = [];
       addMessage(config.assistantName, "Conversation reset. How may I assist you, Sir?");
       speak("Conversation reset. How may I assist you, Sir?");
     }
