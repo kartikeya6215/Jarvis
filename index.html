@@ -274,7 +274,7 @@
         firefox: "firefox://open?url=",
         edge: "microsoft-edge://"
       },
-      defaultVoice: { // Added to fix the undefined error
+      defaultVoice: {
         lang: 'en-IN',
         rate: 1.0,
         pitch: 1.0
@@ -350,7 +350,7 @@
         stream.getTracks().forEach(track => track.stop());
         console.log('Microphone access granted');
       } catch (error) {
-        showError(`Microphone access denied: ${error.message}. Please enable permissions in Settings > Apps > Chrome > Permissions, or try a different browser.`);
+        showError(`Microphone access denied: ${error.message}. Please enable permissions in Settings > Apps > Chrome > Permissions.`);
         return;
       }
       
@@ -451,9 +451,9 @@
       }
       
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = config.defaultVoice.lang; // Now defined
-      utterance.rate = config.defaultVoice.rate; // Now defined
-      utterance.pitch = config.defaultVoice.pitch; // Now defined
+      utterance.lang = config.defaultVoice.lang;
+      utterance.rate = config.defaultVoice.rate;
+      utterance.pitch = config.defaultVoice.pitch;
       
       if (maleVoice) {
         utterance.voice = maleVoice;
@@ -496,7 +496,12 @@
           recognition = null;
         }
         
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)(); // Explicit fallback
+        if (!recognition) {
+          showError("Speech recognition API not available. Please use a supported browser like Chrome.");
+          return;
+        }
+        
         recognition.lang = 'en-IN';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
@@ -526,9 +531,7 @@
         
         recognition.onerror = (event) => {
           console.error('Recognition error:', event.error);
-          if (!['no-speech', 'aborted'].includes(event.error)) {
-            showError(`Recognition error: ${event.error}. Please check microphone, internet, or use a different device/browser.`);
-          }
+          showError(`Recognition error: ${event.error}. Please check microphone permissions or internet connection.`);
           stopListening();
         };
         
@@ -540,7 +543,7 @@
         recognition.start();
       } catch (error) {
         console.error('Start listening error:', error);
-        showError(`Failed to start recognition: ${error.message}. Voice feature disabled. Check Chrome settings or try again later.`);
+        showError(`Failed to start recognition: ${error.message}. Voice feature disabled. Check browser or settings.`);
         stopListening();
         micButton.disabled = true;
       }
