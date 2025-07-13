@@ -229,8 +229,15 @@
     // Include CryptoJS for encryption
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
-    script.onload = () => console.log('CryptoJS loaded');
-    script.onerror = () => console.error('Failed to load CryptoJS');
+    script.onload = () => {
+      console.log('CryptoJS loaded successfully');
+      initializeIfReady();
+    };
+    script.onerror = () => {
+      console.error('Failed to load CryptoJS');
+      showError('Failed to load encryption library. Some features may not work.');
+      initializeIfReady();
+    };
     document.head.appendChild(script);
 
     // 100% Private Configuration
@@ -241,11 +248,6 @@
       voiceProfile: JSON.parse(localStorage.getItem('jarvis-voice-profile')) || null,
       isAuthenticated: false,
       securityLevel: localStorage.getItem('jarvis-security-level') || "strict",
-      defaultVoice: {
-        lang: 'en-US',
-        rate: 1,
-        pitch: 1
-      },
       deviceState: {
         bluetooth: false,
         wifi: true,
@@ -271,6 +273,11 @@
         chrome: "googlechrome://navigate?url=",
         firefox: "firefox://open?url=",
         edge: "microsoft-edge://"
+      },
+      defaultVoice: { // Added to fix the undefined error
+        lang: 'en-IN',
+        rate: 1.0,
+        pitch: 1.0
       }
     };
 
@@ -285,7 +292,6 @@
           addMessage("System", 'Error saving data');
         }
       }
-      
       loadData() {
         try {
           const encrypted = localStorage.getItem('jarvisData');
@@ -316,6 +322,14 @@
     let isInitialized = false;
     let speechSynthesis = window.speechSynthesis;
     let maleVoice;
+    let isCryptoLoaded = false;
+
+    // Initialize if ready
+    function initializeIfReady() {
+      if (isCryptoLoaded) {
+        initializeJarvis();
+      }
+    }
 
     // Initialize JARVIS
     async function initializeJarvis() {
@@ -325,9 +339,9 @@
       await loadVoices();
       
       // Check speech recognition support
-      if (!('webkitSpeechRecognition' in window) {
+      if (!('webkitSpeechRecognition' in window)) {
         showError("Speech recognition not supported. Please use Chrome (version 25+).");
-        return false;
+        return;
       }
       
       // Check microphone permissions
@@ -336,8 +350,8 @@
         stream.getTracks().forEach(track => track.stop());
         console.log('Microphone access granted');
       } catch (error) {
-        showError(`Microphone access denied: ${error.message}. Please enable permissions in Settings > Apps > Chrome > Permissions.`);
-        return false;
+        showError(`Microphone access denied: ${error.message}. Please enable permissions in Settings > Apps > Chrome > Permissions, or try a different browser.`);
+        return;
       }
       
       // Initialize encryption key if not exists
@@ -345,18 +359,10 @@
         localStorage.setItem('jarvis-encryption-key', config.encryptionKey);
       }
       
-      // Initialize voice profile if not exists
-      if (!localStorage.getItem('jarvis-voice-profile')) {
-        createVoiceProfile();
-      } else {
-        config.voiceProfile = JSON.parse(localStorage.getItem('jarvis-voice-profile'));
-      }
-      
       isInitialized = true;
       updateStatus();
       addMessage(config.assistantName, `Secure systems online. Say "JARVIS" to verify voiceprint, ${config.userName}.`);
       speak(`Secure systems online. Say JARVIS to verify voiceprint, ${config.userName}.`);
-      return true;
     }
 
     // Voiceprint authentication
@@ -366,7 +372,7 @@
         speak("Please say: My voice is my password to authenticate");
         
         const authRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        authRecognition.lang = 'en-US';
+        authRecognition.lang = 'en-IN';
         authRecognition.interimResults = false;
         authRecognition.maxAlternatives = 1;
         
@@ -445,9 +451,9 @@
       }
       
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = config.defaultVoice.lang;
-      utterance.rate = config.defaultVoice.rate;
-      utterance.pitch = config.defaultVoice.pitch;
+      utterance.lang = config.defaultVoice.lang; // Now defined
+      utterance.rate = config.defaultVoice.rate; // Now defined
+      utterance.pitch = config.defaultVoice.pitch; // Now defined
       
       if (maleVoice) {
         utterance.voice = maleVoice;
@@ -462,7 +468,11 @@
     async function toggleListening() {
       if (!isInitialized) {
         const initialized = await initializeJarvis();
-        if (!initialized) return;
+        if (!initialized) {
+          addMessage("System", "Initialization failed. Voice feature disabled. Other features remain available.");
+          micButton.disabled = true;
+          return;
+        }
       }
       
       if (config.securityLevel === "strict" && !config.isAuthenticated) {
@@ -487,7 +497,7 @@
         }
         
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US';
+        recognition.lang = 'en-IN';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
         recognition.continuous = false;
@@ -517,7 +527,7 @@
         recognition.onerror = (event) => {
           console.error('Recognition error:', event.error);
           if (!['no-speech', 'aborted'].includes(event.error)) {
-            showError(`Recognition error: ${event.error}. Please check microphone or try again.`);
+            showError(`Recognition error: ${event.error}. Please check microphone, internet, or use a different device/browser.`);
           }
           stopListening();
         };
@@ -530,8 +540,9 @@
         recognition.start();
       } catch (error) {
         console.error('Start listening error:', error);
-        showError(`Failed to start recognition: ${error.message}. Ensure Chrome permissions are enabled.`);
+        showError(`Failed to start recognition: ${error.message}. Voice feature disabled. Check Chrome settings or try again later.`);
         stopListening();
+        micButton.disabled = true;
       }
     }
 
@@ -550,6 +561,7 @@
       micIcon.textContent = '🎤';
       micText.textContent = 'Start Listening';
       updateStatus();
+      micButton.disabled = false;
     }
 
     // Enhanced NLP command processing
@@ -802,7 +814,7 @@
       if (window.location.protocol !== 'https:' && !window.location.hostname.includes('localhost')) {
         showError("For full security, please use HTTPS or localhost");
       }
-      initializeJarvis();
+      // Delay initialization until CryptoJS is loaded
     });
   </script>
 </body>
