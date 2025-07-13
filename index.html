@@ -246,7 +246,7 @@
       assistantName: "JARVIS Pro",
       encryptionKey: localStorage.getItem('jarvis-encryption-key') || 'jarvis-pro-secure-key-2025',
       voiceProfile: JSON.parse(localStorage.getItem('jarvis-voice-profile')) || null,
-      isAuthenticated: localStorage.getItem('jarvis-isAuthenticated') || false, // Persist authentication
+      isAuthenticated: localStorage.getItem('jarvis-isAuthenticated') || false,
       securityLevel: localStorage.getItem('jarvis-security-level') || "strict",
       deviceState: {
         bluetooth: false,
@@ -353,7 +353,7 @@
         console.log('Microphone permission confirmed');
         stream.getTracks().forEach(track => track.stop());
       } catch (error) {
-        showError(`Microphone access issue: ${error.message}. Please ensure permissions are enabled in Chrome settings.`);
+        showError(`Microphone access issue: ${error.message}. Please ensure permissions are enabled in Chrome settings and refresh the page.`);
         return;
       }
       
@@ -390,7 +390,7 @@
           const spokenPhrase = event.results[0][0].transcript.toLowerCase();
           if (spokenPhrase.includes("my voice is my password")) {
             config.isAuthenticated = true;
-            storage.saveAuthState(true); // Save authentication state
+            storage.saveAuthState(true);
             updateStatus();
             addMessage("System", "Voiceprint verified. Authentication successful.");
             speak("Authentication successful");
@@ -513,11 +513,11 @@
           return;
         }
         
-        // Explicitly check permission state
+        // Explicitly check permission state and force refresh
         navigator.permissions.query({ name: 'microphone' }).then(permissionStatus => {
           console.log('Microphone permission state:', permissionStatus.state);
           if (permissionStatus.state === 'denied') {
-            showError("Microphone permission denied. Please check Chrome settings.");
+            showError("Microphone permission denied. Please check Chrome settings, allow access, and refresh the page.");
             return;
           }
           
@@ -550,7 +550,7 @@
           
           recognition.onerror = (event) => {
             console.error('Recognition error:', event.error);
-            showError(`Recognition error: ${event.error}. Please check microphone or retry.`);
+            showError(`Recognition error: ${event.error}. Please check microphone, ensure permissions are allowed, and refresh the page.`);
             stopListening();
           };
           
@@ -563,7 +563,7 @@
         });
       } catch (error) {
         console.error('Start listening error:', error);
-        showError(`Failed to start recognition: ${error.message}. Voice feature disabled. Check browser or settings.`);
+        showError(`Failed to start recognition: ${error.message}. Please refresh the page or use a supported browser like Chrome.`);
         stopListening();
         micButton.disabled = true;
       }
@@ -593,12 +593,10 @@
       let response = "";
       let action = null;
 
-      // Voiceprint unlock (handled in verifyIdentity now)
       if (lowerCommand.includes('jarvis') && !config.isAuthenticated) {
         verifyIdentity();
         return;
       }
-      // Message parsing
       else if (/(message|text)\s+(.+?):(.+)/i.test(command) || /(message|text)\s+(\w+)\s+(.+)/i.test(command)) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for messaging.";
@@ -623,7 +621,6 @@
           }
         }
       }
-      // Call last missed number
       else if (lowerCommand.includes('call last missed number')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for calling.";
@@ -631,7 +628,6 @@
           response = "Simulating call to last missed number (browser cannot make calls).";
         }
       }
-      // Multi-step command: "Turn on Bluetooth, play gym playlist"
       else if (lowerCommand.includes('turn on bluetooth') && lowerCommand.includes('play') && lowerCommand.includes('playlist')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for multi-step commands.";
@@ -646,7 +642,6 @@
           };
         }
       }
-      // Screenshot and send
       else if (lowerCommand.includes('take screenshot') && lowerCommand.includes('send to')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for screenshot commands.";
@@ -660,7 +655,6 @@
           }
         }
       }
-      // Book Uber and text ETA
       else if (lowerCommand.includes('book uber') && lowerCommand.includes('text') && lowerCommand.includes('eta')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for booking commands.";
@@ -677,7 +671,6 @@
           }
         }
       }
-      // Device settings: Hotspot and brightness
       else if (lowerCommand.includes('turn on hotspot') || (lowerCommand.includes('brightness') && /\d+/.test(lowerCommand))) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for device settings.";
@@ -702,7 +695,6 @@
           }
         }
       }
-      // Device settings: General (Bluetooth, Wi-Fi, etc.)
       else if (/(turn on|turn off|enable|disable)\s+(bluetooth|wifi|hotspot|volume)/i.test(lowerCommand)) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for device settings.";
@@ -726,7 +718,6 @@
           }
         }
       }
-      // Open app or link with browser
       else if (/open\s+(.+?)\s+in\s+(.+)/i.test(lowerCommand)) {
         const match = lowerCommand.match(/open\s+(.+?)\s+in\s+(.+)/i);
         const target = match[1].trim().toLowerCase();
@@ -750,7 +741,6 @@
           response = `Cannot open in ${browser}. Invalid browser.`;
         }
       }
-      // Open app or link directly
       else if (lowerCommand.startsWith('open ')) {
         const target = lowerCommand.replace('open ', '').trim().toLowerCase();
         if (config.appDeepLinks[target]) {
@@ -763,7 +753,6 @@
           response = `I don't know how to open ${target}.`;
         }
       }
-      // Set reminder
       else if (lowerCommand.includes('set reminder')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for reminders.";
@@ -780,7 +769,6 @@
           }
         }
       }
-      // Default fallback
       else {
         response = "I didn't understand that command, Sir.";
       }
