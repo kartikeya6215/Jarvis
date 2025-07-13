@@ -219,7 +219,7 @@
         <li>"Turn on Bluetooth, play gym playlist"</li>
         <li>"Take screenshot and send to [Contact]"</li>
         <li>"Book Uber to work, text Lisa ETA"</li>
-        <li>"Turn on hotspot, brightness 50%"</li>
+        <li>"Turn on hotspot, brightness 50%"li>
         <li>"Set reminder: Call Mom at 5pm"</li>
       </ul>
     </div>
@@ -229,9 +229,11 @@
     // Include CryptoJS for encryption
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
+    script.onload = () => console.log('CryptoJS loaded');
+    script.onerror = () => console.error('Failed to load CryptoJS');
     document.head.appendChild(script);
 
-    // 100% Private Configuration - All data stored locally
+    // 100% Private Configuration
     const config = {
       userName: localStorage.getItem('jarvis-user-name') || "Sir",
       assistantName: "JARVIS Pro",
@@ -318,7 +320,7 @@
       
       // Check speech recognition support
       if (!('webkitSpeechRecognition' in window)) {
-        showError("Speech recognition not supported. Please use Chrome.");
+        showError("Speech recognition not supported. Please use Chrome (version 25+).");
         return false;
       }
       
@@ -326,8 +328,9 @@
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         stream.getTracks().forEach(track => track.stop());
+        console.log('Microphone access granted');
       } catch (error) {
-        showError("Microphone access denied. Please enable permissions.");
+        showError(`Microphone access denied: ${error.message}. Please enable permissions in Settings > Apps > Chrome > Permissions.`);
         return false;
       }
       
@@ -435,6 +438,8 @@
       
       if (maleVoice) {
         utterance.voice = maleVoice;
+      } else {
+        console.warn('Male voice not found, using default');
       }
       
       speechSynthesis.speak(utterance);
@@ -483,6 +488,7 @@
             ? 'Status: Listening (Authenticated)' 
             : 'Status: Listening (Standard Mode)';
           addMessage("System", "Listening for your command...");
+          console.log('Recognition started');
         };
         
         recognition.onresult = (event) => {
@@ -490,23 +496,28 @@
           if (command.length >= 3) {
             addMessage("You", command);
             processCommand(command);
+          } else {
+            addMessage("System", "Command too short, please speak clearly.");
           }
         };
         
         recognition.onerror = (event) => {
+          console.error('Recognition error:', event.error);
           if (!['no-speech', 'aborted'].includes(event.error)) {
-            showError(`Error: ${event.error}`);
+            showError(`Recognition error: ${event.error}. Please check microphone or try again.`);
           }
           stopListening();
         };
         
         recognition.onend = () => {
+          console.log('Recognition ended');
           stopListening();
         };
         
         recognition.start();
       } catch (error) {
-        showError(`Failed to start recognition: ${error}`);
+        console.error('Start listening error:', error);
+        showError(`Failed to start recognition: ${error.message}. Ensure Chrome permissions are enabled.`);
         stopListening();
       }
     }
@@ -516,7 +527,9 @@
       if (recognition) {
         try {
           recognition.stop();
-        } catch (e) {}
+        } catch (e) {
+          console.error('Stop error:', e);
+        }
         recognition = null;
       }
       isListening = false;
@@ -539,7 +552,7 @@
         response = "Voiceprint verified. Ready for commands.";
         action = () => console.log("Voiceprint unlocked");
       }
-      // Message parsing: "Message [Contact]: [Text]" or "Text [Contact] [Text]"
+      // Message parsing
       else if (/(message|text)\s+(.+?):(.+)/i.test(command) || /(message|text)\s+(\w+)\s+(.+)/i.test(command)) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for messaging.";
