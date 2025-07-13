@@ -213,7 +213,7 @@
     <div class="command-list">
       <h3>Available Commands:</h3>
       <ul>
-        <li>"Open [App] in [Browser]"</li>
+        <li>"Open [App/Link] in [Browser]"</li>
         <li>"Message [Contact]: [Text]"</li>
         <li>"Call last missed number"</li>
         <li>"Turn on Bluetooth, play gym playlist"</li>
@@ -246,7 +246,7 @@
       assistantName: "JARVIS Pro",
       encryptionKey: localStorage.getItem('jarvis-encryption-key') || 'jarvis-pro-secure-key-2025',
       voiceProfile: JSON.parse(localStorage.getItem('jarvis-voice-profile')) || null,
-      isAuthenticated: false,
+      isAuthenticated: localStorage.getItem('jarvis-isAuthenticated') || false, // Persist authentication
       securityLevel: localStorage.getItem('jarvis-security-level') || "strict",
       deviceState: {
         bluetooth: false,
@@ -305,6 +305,9 @@
           return { messages: [], reminders: [] };
         }
       }
+      saveAuthState(state) {
+        localStorage.setItem('jarvis-isAuthenticated', state);
+      }
     }
 
     // DOM Elements
@@ -361,12 +364,19 @@
       
       isInitialized = true;
       updateStatus();
-      addMessage(config.assistantName, `Secure systems online. Say "JARVIS" to verify voiceprint, ${config.userName}.`);
-      speak(`Secure systems online. Say JARVIS to verify voiceprint, ${config.userName}.`);
+      addMessage(config.assistantName, `Secure systems online. ${config.isAuthenticated ? 'You are already authenticated.' : `Say "JARVIS" to verify voiceprint, ${config.userName}.`}`);
+      if (!config.isAuthenticated) {
+        speak(`Secure systems online. Say JARVIS to verify voiceprint, ${config.userName}.`);
+      }
     }
 
     // Voiceprint authentication
     async function verifyIdentity() {
+      if (config.isAuthenticated) {
+        addMessage("System", "You are already authenticated. No need to verify again.");
+        speak("You are already authenticated.");
+        return;
+      }
       if (config.voiceProfile) {
         addMessage("System", "Please say: 'My voice is my password' to authenticate");
         speak("Please say: My voice is my password to authenticate");
@@ -380,6 +390,7 @@
           const spokenPhrase = event.results[0][0].transcript.toLowerCase();
           if (spokenPhrase.includes("my voice is my password")) {
             config.isAuthenticated = true;
+            storage.saveAuthState(true); // Save authentication state
             updateStatus();
             addMessage("System", "Voiceprint verified. Authentication successful.");
             speak("Authentication successful");
@@ -582,12 +593,10 @@
       let response = "";
       let action = null;
 
-      // Voiceprint unlock
+      // Voiceprint unlock (handled in verifyIdentity now)
       if (lowerCommand.includes('jarvis') && !config.isAuthenticated) {
-        config.isAuthenticated = true;
-        updateStatus();
-        response = "Voiceprint verified. Ready for commands.";
-        action = () => console.log("Voiceprint unlocked");
+        verifyIdentity();
+        return;
       }
       // Message parsing
       else if (/(message|text)\s+(.+?):(.+)/i.test(command) || /(message|text)\s+(\w+)\s+(.+)/i.test(command)) {
@@ -717,28 +726,41 @@
           }
         }
       }
-      // Open app with browser
+      // Open app or link with browser
       else if (/open\s+(.+?)\s+in\s+(.+)/i.test(lowerCommand)) {
         const match = lowerCommand.match(/open\s+(.+?)\s+in\s+(.+)/i);
-        const app = match[1].trim().toLowerCase();
+        const target = match[1].trim().toLowerCase();
         const browser = match[2].trim().toLowerCase();
-        if (config.browserOptions[browser] && config.appDeepLinks[app]) {
-          response = `Opening ${app} in ${browser}.`;
-          action = () => {
-            window.location.href = `${config.browserOptions[browser]}${config.appDeepLinks[app].web}`;
-          };
+        if (config.browserOptions[browser]) {
+          let url = '';
+          if (config.appDeepLinks[target]) {
+            url = config.appDeepLinks[target].web;
+          } else if (isValidURL(target)) {
+            url = target.startsWith('http') ? target : `https://${target}`;
+          }
+          if (url) {
+            response = `Opening ${target} in ${browser}.`;
+            action = () => {
+              window.location.href = `${config.browserOptions[browser]}${url}`;
+            };
+          } else {
+            response = `Cannot open ${target}. Invalid app or link.`;
+          }
         } else {
-          response = `Cannot open ${app} in ${browser}. Invalid app or browser.`;
+          response = `Cannot open in ${browser}. Invalid browser.`;
         }
       }
-      // Open app
+      // Open app or link directly
       else if (lowerCommand.startsWith('open ')) {
-        const app = lowerCommand.replace('open ', '').trim().toLowerCase();
-        if (config.appDeepLinks[app]) {
-          response = `Opening ${app}.`;
-          action = () => openApp(app);
+        const target = lowerCommand.replace('open ', '').trim().toLowerCase();
+        if (config.appDeepLinks[target]) {
+          response = `Opening ${target}.`;
+          action = () => openApp(target);
+        } else if (isValidURL(target)) {
+          response = `Opening ${target} in default browser.`;
+          action = () => window.location.href = target.startsWith('http') ? target : `https://${target}`;
         } else {
-          response = `I don't know how to open ${app}.`;
+          response = `I don't know how to open ${target}.`;
         }
       }
       // Set reminder
@@ -789,6 +811,16 @@
         }, 500);
       } catch (e) {
         if (app.web) window.location.href = app.web;
+      }
+    }
+
+    // Utility to validate URL
+    function isValidURL(string) {
+      try {
+        new URL(string);
+        return true;
+      } catch (_) {
+        return false;
       }
     }
 
