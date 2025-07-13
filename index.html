@@ -219,7 +219,7 @@
         <li>"Turn on Bluetooth, play gym playlist"</li>
         <li>"Take screenshot and send to [Contact]"</li>
         <li>"Book Uber to work, text Lisa ETA"</li>
-        <li>"Turn on hotspot, brightness 50%"li>
+        <li>"Turn on hotspot, brightness 50%"</li>
         <li>"Set reminder: Call Mom at 5pm"</li>
       </ul>
     </div>
@@ -241,6 +241,11 @@
       voiceProfile: JSON.parse(localStorage.getItem('jarvis-voice-profile')) || null,
       isAuthenticated: false,
       securityLevel: localStorage.getItem('jarvis-security-level') || "strict",
+      defaultVoice: {
+        lang: 'en-US',
+        rate: 1,
+        pitch: 1
+      },
       deviceState: {
         bluetooth: false,
         wifi: true,
@@ -280,6 +285,7 @@
           addMessage("System", 'Error saving data');
         }
       }
+      
       loadData() {
         try {
           const encrypted = localStorage.getItem('jarvisData');
@@ -319,7 +325,7 @@
       await loadVoices();
       
       // Check speech recognition support
-      if (!('webkitSpeechRecognition' in window)) {
+      if (!('webkitSpeechRecognition' in window) {
         showError("Speech recognition not supported. Please use Chrome (version 25+).");
         return false;
       }
@@ -339,6 +345,13 @@
         localStorage.setItem('jarvis-encryption-key', config.encryptionKey);
       }
       
+      // Initialize voice profile if not exists
+      if (!localStorage.getItem('jarvis-voice-profile')) {
+        createVoiceProfile();
+      } else {
+        config.voiceProfile = JSON.parse(localStorage.getItem('jarvis-voice-profile'));
+      }
+      
       isInitialized = true;
       updateStatus();
       addMessage(config.assistantName, `Secure systems online. Say "JARVIS" to verify voiceprint, ${config.userName}.`);
@@ -353,7 +366,7 @@
         speak("Please say: My voice is my password to authenticate");
         
         const authRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        authRecognition.lang = 'en-IN';
+        authRecognition.lang = 'en-US';
         authRecognition.interimResults = false;
         authRecognition.maxAlternatives = 1;
         
@@ -474,7 +487,7 @@
         }
         
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-IN';
+        recognition.lang = 'en-US';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
         recognition.continuous = false;
