@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>JARVIS Pro - Private AI Assistant</title>
+  <title>JARVIS Pro</title>
   <style>
     :root {
       --jarvis-blue: #58a6ff;
@@ -44,16 +44,6 @@
       margin-top: 0;
       font-size: 2rem;
       text-align: center;
-    }
-    
-    .privacy-badge {
-      background: rgba(63, 185, 80, 0.2);
-      border: 1px solid var(--jarvis-green);
-      border-radius: 20px;
-      padding: 8px 15px;
-      display: inline-block;
-      margin: 10px 0;
-      font-size: 0.8rem;
     }
     
     #response-container {
@@ -133,10 +123,6 @@
       background-color: var(--jarvis-red);
     }
     
-    #authButton {
-      background-color: var(--jarvis-blue);
-    }
-    
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(255, 123, 114, 0.7); }
       70% { box-shadow: 0 0 0 12px rgba(255, 123, 114, 0); }
@@ -192,237 +178,130 @@
 <body>
   <div class="container">
     <h1>JARVIS Pro</h1>
-    <p style="text-align: center;">Your 100% private AI assistant</p>
-    <div class="privacy-badge">🔒 All data stored locally | No tracking | No cloud sync</div>
+    <p style="text-align: center;">Your complete AI assistant. Speak naturally in English or Hinglish.</p>
     
     <div id="response-container">
-      <div class="message jarvis-message">JARVIS: Initializing secure systems...</div>
+      <div class="message jarvis-message">JARVIS: Initializing systems...</div>
     </div>
     
-    <div class="status" id="status">Status: Ready | Voiceprint: Not verified</div>
+    <div class="status" id="status">Status: Ready</div>
     
     <div class="controls">
       <button id="micButton" onclick="toggleListening()">
         <span id="micIcon">🎤</span> <span id="micText">Start Listening</span>
       </button>
-      <button id="authButton" onclick="verifyIdentity()">
-        🔐 Verify Identity
+      <button onclick="resetConversation()">
+        🔄 Reset Conversation
       </button>
     </div>
     
     <div class="command-list">
       <h3>Available Commands:</h3>
       <ul>
-        <li>"Open [App/Link] in [Browser]"</li>
-        <li>"Message [Contact]: [Text]"</li>
-        <li>"Call last missed number"</li>
-        <li>"Turn on Bluetooth, play gym playlist"</li>
-        <li>"Take screenshot and send to [Contact]"</li>
-        <li>"Book Uber to work, text Lisa ETA"</li>
-        <li>"Turn on hotspot, brightness 50%"</li>
-        <li>"Set reminder: Call Mom at 5pm"</li>
+        <li>"Open YouTube/Gmail"</li>
+        <li>"Open Phone/Camera/Gallery"</li>
+        <li>"Open Facebook/Instagram"</li>
+        <li>"Play music/lofi"</li>
+        <li>"What's the time?"</li>
+        <li>"Show me the news"</li>
+        <li>"Who is [person]?"</li>
+        <li>"How's the weather?"</li>
+        <li>"Tell me a joke"</li>
+        <li>"Calculate [math problem]"</li>
+        <li>"Stop listening"</li>
       </ul>
     </div>
   </div>
 
   <script>
-    // Include CryptoJS for encryption
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
-    script.onload = () => {
-      console.log('CryptoJS loaded successfully');
-      initializeJarvis();
-    };
-    script.onerror = () => {
-      console.error('Failed to load CryptoJS');
-      showError('Failed to load encryption library. Some features may not work.');
-      initializeJarvis();
-    };
-    document.head.appendChild(script);
-
-    // Configuration
+    // Enhanced System Configuration
     const config = {
-      userName: localStorage.getItem('jarvis-user-name') || "Sir",
+      userName: "Sir",
       assistantName: "JARVIS Pro",
-      encryptionKey: localStorage.getItem('jarvis-encryption-key') || 'jarvis-pro-secure-key-2025',
-      voiceProfile: JSON.parse(localStorage.getItem('jarvis-voice-profile')) || null,
-      isAuthenticated: localStorage.getItem('jarvis-isAuthenticated') || false,
-      securityLevel: localStorage.getItem('jarvis-security-level') || "strict",
-      deviceState: {
-        bluetooth: false,
-        wifi: true,
-        hotspot: false,
-        brightness: 70,
-        volume: 50
-      },
-      contacts: JSON.parse(localStorage.getItem('jarvis-contacts')) || {
-        "mom": { name: "Mom", number: "" },
-        "dad": { name: "Dad", number: "" },
-        "sarah": { name: "Sarah", number: "" },
-        "lisa": { name: "Lisa", number: "" },
-        "john": { name: "John", number: "" }
-      },
-      appDeepLinks: {
-        youtube: { native: "vnd.youtube://", web: "https://youtube.com" },
-        whatsapp: { native: "whatsapp://", web: "https://web.whatsapp.com" },
-        spotify: { native: "spotify://", web: "https://open.spotify.com" },
-        instagram: { native: "instagram://", web: "https://www.instagram.com" },
-        uber: { native: "uber://", web: "https://m.uber.com" }
-      },
-      browserOptions: {
-        chrome: "googlechrome://navigate?url=",
-        firefox: "firefox://open?url=",
-        edge: "microsoft-edge://"
-      },
       defaultVoice: {
         lang: 'en-IN',
         rate: 1.0,
-        pitch: 1.0
+        pitch: 0.9
+      },
+      appDeepLinks: {
+        // Native app deep links
+        youtube: "vnd.youtube://",
+        phone: "tel:",
+        contacts: "content://contacts/people/",
+        camera: "android.media.action.IMAGE_CAPTURE",
+        gallery: "content://media/external/images/media",
+        settings: "android.settings.SETTINGS",
+        calculator: "calc:",
+        clock: "clock:",
+        messages: "sms:",
+        facebook: "fb://",
+        instagram: "instagram://",
+        twitter: "twitter://",
+        whatsapp: "whatsapp://",
+        chrome: "googlechrome://",
+        photos: "googlephotos://",
+        drive: "googledrive://",
+        playstore: "market://",
+        music: "com.google.android.music://",
+        maps: "google.navigation://",
+        gmail: "googlegmail://"
+      },
+      webFallbacks: {
+        youtube: "https://youtube.com",
+        music: "https://music.youtube.com",
+        news: "https://news.google.com",
+        maps: "https://maps.google.com",
+        gmail: "https://mail.google.com",
+        whatsapp: "https://web.whatsapp.com",
+        facebook: "https://facebook.com",
+        instagram: "https://instagram.com",
+        twitter: "https://twitter.com"
       }
     };
 
-    // Secure Storage
-    class SecureStorage {
-      saveData(data) {
-        try {
-          const encrypted = CryptoJS.AES.encrypt(JSON.stringify(data), config.encryptionKey).toString();
-          localStorage.setItem('jarvisData', encrypted);
-        } catch (e) {
-          console.error('Storage save error:', e);
-          addMessage("System", 'Error saving data');
-        }
-      }
-      loadData() {
-        try {
-          const encrypted = localStorage.getItem('jarvisData');
-          if (encrypted) {
-            const bytes = CryptoJS.AES.decrypt(encrypted, config.encryptionKey);
-            return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-          }
-          return { messages: [], reminders: [] };
-        } catch (e) {
-          console.error('Storage load error:', e);
-          return { messages: [], reminders: [] };
-        }
-      }
-      saveAuthState(state) {
-        localStorage.setItem('jarvis-isAuthenticated', state);
-      }
-    }
-
-    const storage = new SecureStorage();
+    // DOM Elements
     const responseContainer = document.getElementById('response-container');
     const statusElement = document.getElementById('status');
     const micButton = document.getElementById('micButton');
     const micIcon = document.getElementById('micIcon');
     const micText = document.getElementById('micText');
-    const authButton = document.getElementById('authButton');
-
+    
+    // System State
     let recognition;
     let isListening = false;
+    let isInitialized = false;
     let speechSynthesis = window.speechSynthesis;
     let maleVoice;
 
     // Initialize JARVIS
     async function initializeJarvis() {
-      addMessage(config.assistantName, "Initializing secure systems...");
+      addMessage(config.assistantName, "Initializing all systems...");
+      
+      // Load voices
       await loadVoices();
       
+      // Check for speech recognition support
       if (!('webkitSpeechRecognition' in window)) {
-        showError("Speech recognition not supported. Please use Chrome (version 25+).");
-        return;
+        showError("Speech recognition not supported in your browser");
+        return false;
       }
       
+      // Check microphone permissions
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        console.log('Microphone permission confirmed');
         stream.getTracks().forEach(track => track.stop());
       } catch (error) {
-        showError(`Microphone access issue: ${error.message}. Please allow microphone permissions in Chrome settings and refresh the page.`);
-        return;
+        showError("Microphone access denied. Please enable permissions.");
+        return false;
       }
       
-      if (!localStorage.getItem('jarvis-encryption-key')) {
-        localStorage.setItem('jarvis-encryption-key', config.encryptionKey);
-      }
-      
-      updateStatus();
-      addMessage(config.assistantName, `Secure systems online. ${config.isAuthenticated ? 'You are already authenticated.' : `Say "JARVIS" to verify voiceprint, ${config.userName}.`}`);
-      if (!config.isAuthenticated) {
-        speak(`Secure systems online. Say JARVIS to verify voiceprint, ${config.userName}.`);
-      }
+      isInitialized = true;
+      addMessage(config.assistantName, Systems online. How may I assist you today, ${config.userName}?);
+      speak(Systems online. How may I assist you today, ${config.userName}?);
+      return true;
     }
 
-    // Voiceprint authentication
-    async function verifyIdentity() {
-      if (config.isAuthenticated) {
-        addMessage("System", "You are already authenticated. No need to verify again.");
-        speak("You are already authenticated.");
-        return;
-      }
-      if (config.voiceProfile) {
-        addMessage("System", "Please say: 'My voice is my password' to authenticate");
-        speak("Please say: My voice is my password to authenticate");
-        
-        const authRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        authRecognition.lang = 'en-IN';
-        authRecognition.interimResults = false;
-        authRecognition.maxAlternatives = 1;
-        
-        authRecognition.onresult = (event) => {
-          const spokenPhrase = event.results[0][0].transcript.toLowerCase();
-          if (spokenPhrase.includes("my voice is my password")) {
-            config.isAuthenticated = true;
-            storage.saveAuthState(true);
-            updateStatus();
-            addMessage("System", "Voiceprint verified. Authentication successful.");
-            speak("Authentication successful");
-          } else {
-            addMessage("System", "Authentication failed. Voiceprint mismatch.");
-            speak("Authentication failed");
-          }
-        };
-        
-        authRecognition.onerror = (event) => showError(`Auth error: ${event.error}`);
-        authRecognition.start();
-      } else {
-        addMessage("System", "No voiceprint registered. Please create one first.");
-        speak("No voiceprint registered. Please create one first.");
-      }
-    }
-
-    // Create voice profile
-    function createVoiceProfile() {
-      addMessage("System", "Creating voiceprint. Please say: 'My voice is my password' three times.");
-      speak("Creating voiceprint. Please say: My voice is my password three times.");
-      
-      config.voiceProfile = {
-        created: new Date().toISOString(),
-        phrase: "my voice is my password"
-      };
-      localStorage.setItem('jarvis-voice-profile', JSON.stringify(config.voiceProfile));
-      addMessage("System", "Voiceprint created successfully.");
-      speak("Voiceprint created successfully.");
-      updateStatus();
-    }
-
-    // Update status
-    function updateStatus() {
-      let status = "Ready";
-      if (config.isAuthenticated) {
-        status += " | Voiceprint: Verified";
-        authButton.style.backgroundColor = "#3fb950";
-      } else if (config.voiceProfile) {
-        status += " | Voiceprint: Registered";
-        authButton.style.backgroundColor = "#58a6ff";
-      } else {
-        status += " | Voiceprint: Not registered";
-        authButton.style.backgroundColor = "#ff7b72";
-      }
-      statusElement.textContent = `Status: ${status} | Security: ${config.securityLevel}`;
-    }
-
-    // Load voices
+    // Load available voices
     function loadVoices() {
       return new Promise((resolve) => {
         const voices = speechSynthesis.getVoices();
@@ -438,25 +317,35 @@
       });
     }
 
-    // Speak
+    // Voice synthesis
     function speak(text) {
       if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
       }
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = config.defaultVoice.lang;
       utterance.rate = config.defaultVoice.rate;
       utterance.pitch = config.defaultVoice.pitch;
-      if (maleVoice) utterance.voice = maleVoice;
+      
+      if (maleVoice) {
+        utterance.voice = maleVoice;
+      }
+      
+      utterance.onend = () => {
+        if (isListening) {
+          setTimeout(startListening, 500);
+        }
+      };
+      
       speechSynthesis.speak(utterance);
     }
 
-    // Toggle listening
-    function toggleListening() {
-      if (config.securityLevel === "strict" && !config.isAuthenticated) {
-        addMessage("System", "Authentication required for strict security mode.");
-        speak("Authentication required. Please verify your identity first.");
-        return;
+    // Toggle listening state
+    async function toggleListening() {
+      if (!isInitialized) {
+        const initialized = await initializeJarvis();
+        if (!initialized) return;
       }
       
       if (isListening) {
@@ -466,270 +355,238 @@
       }
     }
 
-    // Start listening
+    // Start speech recognition (Optimized Version)
     function startListening() {
-      if (recognition) {
-        recognition.stop();
-        recognition = null;
-      }
-      
-      recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
-      if (!recognition) {
-        showError("Speech recognition not supported. Please use Chrome (version 25+).");
-        return;
-      }
-      
-      recognition.lang = 'en-IN';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-      
-      recognition.onstart = () => {
-        isListening = true;
-        micButton.classList.add('listening');
-        micIcon.textContent = '🛑';
-        micText.textContent = 'Listening...';
-        statusElement.textContent = config.isAuthenticated ? 'Status: Listening (Authenticated)' : 'Status: Listening (Standard Mode)';
-        addMessage("System", "Listening for your command...");
-      };
-      
-      recognition.onresult = (event) => {
-        const command = event.results[0][0].transcript.trim();
-        if (command.length >= 3) {
-          addMessage("You", command);
-          processCommand(command);
-        } else {
-          addMessage("System", "Command too short, please speak clearly.");
+      try {
+        if (recognition) {
+          recognition.stop();
+          recognition = null;
         }
-      };
-      
-      recognition.onerror = (event) => {
-        console.error('Recognition error:', event.error);
-        showError(`Recognition error: ${event.error}. Please check microphone and permissions.`);
-        stopListening();
-      };
-      
-      recognition.onend = () => {
-        stopListening();
-      };
-      
-      recognition.start();
+        
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-IN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.continuous = false; // Single utterance mode
+        
+        recognition.onstart = () => {
+          isListening = true;
+          micButton.classList.add('listening');
+          micIcon.textContent = '🛑';
+          micText.textContent = 'Listening...';
+          statusElement.textContent = 'Status: Active (Speak Now)';
+          addMessage("System", "Ready for your command...");
+        };
+        
+        recognition.onresult = (event) => {
+          const command = event.results[0][0].transcript;
+          if (command.trim().length > 2) { // Minimum 3 characters
+            addMessage("You", command);
+            processCommand(command);
+          }
+        };
+        
+        recognition.onerror = (event) => {
+          if (event.error !== 'no-speech') { // Ignore background noise
+            showError(Error: ${event.error});
+          }
+          stopListening();
+        };
+        
+        recognition.onend = () => {
+          if (isListening) {
+            setTimeout(startListening, 1000); // Restart with delay
+          }
+        };
+        
+        recognition.start();
+      } catch (error) {
+        showError(Failed to start recognition: ${error});
+      }
     }
 
-    // Stop listening
+    // Stop speech recognition
     function stopListening() {
       if (recognition) {
         recognition.stop();
-        recognition = null;
       }
       isListening = false;
       micButton.classList.remove('listening');
       micIcon.textContent = '🎤';
       micText.textContent = 'Start Listening';
-      updateStatus();
+      statusElement.textContent = 'Status: Ready';
+      addMessage("System", "Listening stopped");
     }
 
-    // Process command
+    // Enhanced app opening with proper fallback
+    function openAppOrWebsite(appKey) {
+      const deepLink = config.appDeepLinks[appKey];
+      const webUrl = config.webFallbacks[appKey];
+      
+      if (!deepLink && !webUrl) {
+        showError(No configuration found for ${appKey});
+        return;
+      }
+      
+      // Try native app first
+      if (deepLink) {
+        try {
+          const iframe = document.createElement('iframe');
+          iframe.style.display = 'none';
+          iframe.src = deepLink;
+          document.body.appendChild(iframe);
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+            // Check if we're still on the page (app didn't open)
+            if (!document.hidden && webUrl) {
+              window.location.href = webUrl;
+            }
+          }, 500);
+        } catch (e) {
+          if (webUrl) window.location.href = webUrl;
+        }
+      } else if (webUrl) {
+        window.location.href = webUrl;
+      }
+    }
+
+    // Enhanced processCommand()
     function processCommand(command) {
       const lowerCommand = command.toLowerCase();
       let response = "";
-      let action = null;
-
-      if (lowerCommand.includes('jarvis') && !config.isAuthenticated) {
-        verifyIdentity();
-        return;
-      } else if (lowerCommand.includes('message') || lowerCommand.includes('text')) {
-        if (config.securityLevel === "strict" && !config.isAuthenticated) {
-          response = "Authentication required for messaging.";
-        } else {
-          const match = lowerCommand.match(/(message|text)\s+(\w+)\s+(.+)/i) || lowerCommand.match(/(message|text)\s+(.+?):(.+)/i);
-          if (match) {
-            const contact = match[2].toLowerCase();
-            const message = match[3] || match[4];
-            if (config.contacts[contact]) {
-              const data = storage.loadData();
-              data.messages.push({ contact: config.contacts[contact].name, message, timestamp: new Date().toISOString() });
-              storage.saveData(data);
-              response = `Sending message to ${config.contacts[contact].name}: "${message}"`;
-            } else {
-              response = `Contact "${contact}" not found.`;
-            }
-          } else {
-            response = "Please specify a contact and message.";
-          }
+      let appKey = "";
+      
+      // Extract app name from "open [appname]" commands
+      if (lowerCommand.startsWith('open ')) {
+        const requestedApp = lowerCommand.replace('open ', '').trim();
+        
+        // Find matching app key (supports partial matches)
+        appKey = Object.keys(config.appDeepLinks).find(key => 
+          key.includes(requestedApp) || requestedApp.includes(key)
+        ) || requestedApp;
+        
+        if (appKey && (config.appDeepLinks[appKey] || config.webFallbacks[appKey])) {
+          response = Opening ${appKey}, Sir.;
+          addMessage(config.assistantName, response);
+          speak(response);
+          openAppOrWebsite(appKey);
+          stopListening();
+          return;
         }
-      } else if (lowerCommand.includes('call last missed number')) {
-        if (config.securityLevel === "strict" && !config.isAuthenticated) {
-          response = "Authentication required for calling.";
-        } else {
-          response = "Simulating call to last missed number (browser cannot make calls).";
-        }
-      } else if (lowerCommand.includes('turn on bluetooth') && lowerCommand.includes('play') && lowerCommand.includes('playlist')) {
-        if (config.securityLevel === "strict" && !config.isAuthenticated) {
-          response = "Authentication required for multi-step commands.";
-        } else {
-          config.deviceState.bluetooth = true;
-          const playlist = lowerCommand.match(/play\s+(\w+)\s+playlist/i)?.[1] || 'gym';
-          response = `Bluetooth turned on. Simulating playing ${playlist} playlist on Spotify.`;
-          action = () => openApp('spotify');
-        }
-      } else if (lowerCommand.includes('take screenshot') && lowerCommand.includes('send to')) {
-        if (config.securityLevel === "strict" && !config.isAuthenticated) {
-          response = "Authentication required for screenshot commands.";
-        } else {
-          const contact = lowerCommand.match(/send to\s+(\w+)/i)?.[1]?.toLowerCase();
-          if (config.contacts[contact]) {
-            response = `Simulating screenshot and sending to ${config.contacts[contact].name}.`;
-            action = () => console.log("Screenshot captured and sent (simulated)");
-          } else {
-            response = `Contact "${contact}" not found.`;
-          }
-        }
-      } else if (lowerCommand.includes('book uber') && lowerCommand.includes('text') && lowerCommand.includes('eta')) {
-        if (config.securityLevel === "strict" && !config.isAuthenticated) {
-          response = "Authentication required for booking commands.";
-        } else {
-          const contact = lowerCommand.match(/text\s+(\w+)\s+eta/i)?.[1]?.toLowerCase();
-          if (config.contacts[contact]) {
-            const data = storage.loadData();
-            data.messages.push({ contact: config.contacts[contact].name, message: "ETA: 15 minutes", timestamp: new Date().toISOString() });
-            storage.saveData(data);
-            response = `Booking Uber to work. Sending ETA to ${config.contacts[contact].name}.`;
-            action = () => openApp('uber');
-          } else {
-            response = `Contact "${contact}" not found.`;
-          }
-        }
-      } else if (lowerCommand.includes('turn on hotspot') || (lowerCommand.includes('brightness') && /\d+/.test(lowerCommand))) {
-        if (config.securityLevel === "strict" && !config.isAuthenticated) {
-          response = "Authentication required for device settings.";
-        } else {
-          if (lowerCommand.includes('hotspot')) {
-            config.deviceState.hotspot = true;
-            response = "Hotspot turned on successfully.";
-          }
-          const brightnessMatch = lowerCommand.match(/brightness\s+(\d+)/i);
-          if (brightnessMatch) {
-            const level = parseInt(brightnessMatch[1]);
-            if (level >= 0 && level <= 100) {
-              config.deviceState.brightness = level;
-              response += response ? "\n" : "";
-              response += `Brightness set to ${level}%.`;
-            } else {
-              response += response ? "\n" : "";
-              response += "Please specify brightness between 0-100%.";
-            }
-          }
-        }
-      } else if (/(turn on|turn off|enable|disable)\s+(bluetooth|wifi|hotspot|volume)/i.test(lowerCommand)) {
-        if (config.securityLevel === "strict" && !config.isAuthenticated) {
-          response = "Authentication required for device settings.";
-        } else {
-          const match = lowerCommand.match(/(turn on|enable|turn off|disable)\s+(bluetooth|wifi|hotspot|volume)/i);
-          const actionType = match[1].toLowerCase();
-          const setting = match[2].toLowerCase();
-          const enable = actionType.includes('on') || actionType.includes('enable');
-          if (setting === 'volume' && /\d+/.test(lowerCommand)) {
-            const level = parseInt(lowerCommand.match(/\d+/)[0]);
-            if (level >= 0 && level <= 100) {
-              config.deviceState.volume = level;
-              response = `Volume set to ${level}%.`;
-            } else {
-              response = "Please specify volume between 0-100%.";
-            }
-          } else {
-            config.deviceState[setting] = enable;
-            response = `${setting.charAt(0).toUpperCase() + setting.slice(1)} ${enable ? 'turned on' : 'turned off'} successfully.`;
-          }
-        }
-      } else if (/open\s+(.+?)\s+in\s+(.+)/i.test(lowerCommand)) {
-        const match = lowerCommand.match(/open\s+(.+?)\s+in\s+(.+)/i);
-        const target = match[1].trim().toLowerCase();
-        const browser = match[2].trim().toLowerCase();
-        if (config.browserOptions[browser]) {
-          let url = config.appDeepLinks[target]?.web || (isValidURL(target) ? (target.startsWith('http') ? target : `https://${target}`) : '');
-          if (url) {
-            response = `Opening ${target} in ${browser}.`;
-            action = () => window.location.href = `${config.browserOptions[browser]}${url}`;
-          } else {
-            response = `Cannot open ${target}. Invalid app or link.`;
-          }
-        } else {
-          response = `Cannot open in ${browser}. Invalid browser.`;
-        }
-      } else if (lowerCommand.startsWith('open ')) {
-        const target = lowerCommand.replace('open ', '').trim().toLowerCase();
-        if (config.appDeepLinks[target]) {
-          response = `Opening ${target}.`;
-          action = () => openApp(target);
-        } else if (isValidURL(target)) {
-          response = `Opening ${target} in default browser.`;
-          action = () => window.location.href = target.startsWith('http') ? target : `https://${target}`;
-        } else {
-          response = `I don't know how to open ${target}.`;
-        }
-      } else if (lowerCommand.includes('set reminder')) {
-        if (config.securityLevel === "strict" && !config.isAuthenticated) {
-          response = "Authentication required for reminders.";
-        } else {
-          const match = lowerCommand.match(/set reminder\s*:\s*(.+)/i);
-          if (match) {
-            const reminder = match[1].trim();
-            const data = storage.loadData();
-            data.reminders.push({ reminder, timestamp: new Date().toISOString() });
-            storage.saveData(data);
-            response = `Reminder set: ${reminder}`;
-          } else {
-            response = "Please specify reminder details.";
-          }
-        }
-      } else {
-        response = "I didn't understand that command, Sir.";
       }
       
-      addMessage(config.assistantName, response);
-      speak(response);
-      if (action) action();
-      stopListening();
-    }
-
-    // Open app
-    function openApp(appName) {
-      const app = config.appDeepLinks[appName.toLowerCase()];
-      if (app && app.web) window.location.href = app.web;
-    }
-
-    // Validate URL
-    function isValidURL(string) {
-      try {
-        new URL(string);
-        return true;
-      } catch (_) {
-        return false;
+      // Specific command processing
+      if (lowerCommand.includes('youtube')) {
+        response = "Opening YouTube, Sir.";
+        addMessage(config.assistantName, response);
+        speak(response);
+        openAppOrWebsite('youtube');
       }
+      else if (lowerCommand.includes('play music') || lowerCommand.includes('lofi')) {
+        response = "Playing music, Sir.";
+        addMessage(config.assistantName, response);
+        speak(response);
+        openAppOrWebsite('music');
+      }
+      else if (lowerCommand.includes('gmail') || lowerCommand.includes('email')) {
+        response = "Opening Gmail, Sir.";
+        addMessage(config.assistantName, response);
+        speak(response);
+        openAppOrWebsite('gmail');
+      }
+      else if (lowerCommand.includes('whatsapp')) {
+        response = "Opening WhatsApp, Sir.";
+        addMessage(config.assistantName, response);
+        speak(response);
+        openAppOrWebsite('whatsapp');
+      }
+      else if (lowerCommand.includes('time') || lowerCommand.includes('samay')) {
+        const now = new Date();
+        response = It's ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })};
+        addMessage(config.assistantName, response);
+        speak(response);
+      }
+      else if (lowerCommand.includes('news') || lowerCommand.includes('khabar')) {
+        response = "Showing news headlines, Sir.";
+        addMessage(config.assistantName, response);
+        speak(response);
+        openAppOrWebsite('news');
+      }
+      else if (lowerCommand.includes('map') || lowerCommand.includes('location')) {
+        response = "Opening Google Maps, Sir.";
+        addMessage(config.assistantName, response);
+        speak(response);
+        openAppOrWebsite('maps');
+      }
+      else if (lowerCommand.includes('who is') || lowerCommand.includes('cm of')) {
+        const query = command.split('who is')[1] || command.split('cm of')[1] || "";
+        response = Searching for ${query.trim() || 'that'}, Sir.;
+        addMessage(config.assistantName, response);
+        speak(response);
+        window.location.href = https://www.google.com/search?q=${encodeURIComponent(query)};
+      }
+      else if (lowerCommand.includes('weather') || lowerCommand.includes('mausam')) {
+        response = "Checking weather, Sir.";
+        addMessage(config.assistantName, response);
+        speak(response);
+        window.location.href = "https://www.google.com/search?q=weather";
+      }
+      else if (lowerCommand.includes('stop') || lowerCommand.includes('band')) {
+        response = "Standing by, Sir.";
+        addMessage(config.assistantName, response);
+        speak(response);
+        stopListening();
+      }
+      else {
+        response = "I didn't understand that command, Sir.";
+        addMessage(config.assistantName, response);
+        speak(response);
+      }
+      
+      stopListening();
     }
 
     // UI Helpers
     function addMessage(sender, text) {
       const messageDiv = document.createElement('div');
       messageDiv.classList.add('message');
+      
       if (sender === config.assistantName) {
         messageDiv.classList.add('jarvis-message');
-        messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+        messageDiv.innerHTML = <strong>${sender}:</strong> ${text};
       } else if (sender === "System") {
         messageDiv.classList.add('error-message');
-        messageDiv.innerHTML = `<em>${text}</em>`;
+        messageDiv.innerHTML = <em>${text}</em>;
       } else {
         messageDiv.classList.add('user-message');
-        messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+        messageDiv.innerHTML = <strong>${sender}:</strong> ${text};
       }
+      
       responseContainer.appendChild(messageDiv);
-      responseContainer.scrollTop = responseContainer.scrollHeight;
+      scrollToBottom();
     }
 
     function showError(message) {
       addMessage("System", message);
-      speak(message);
     }
+
+    function scrollToBottom() {
+      responseContainer.scrollTop = responseContainer.scrollHeight;
+    }
+
+    function resetConversation() {
+      responseContainer.innerHTML = '';
+      addMessage(config.assistantName, "Conversation reset. How may I assist you, Sir?");
+      speak("Conversation reset. How may I assist you, Sir?");
+    }
+
+    // Initialize on load
+    window.addEventListener('load', () => {
+      if (window.location.protocol !== 'https:' && !window.location.hostname.includes('localhost')) {
+        showError("For full functionality, please use HTTPS or localhost");
+      }
+      initializeJarvis();
+    });
   </script>
 </body>
 </html>
