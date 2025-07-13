@@ -231,16 +231,16 @@
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
     script.onload = () => {
       console.log('CryptoJS loaded successfully');
-      initializeIfReady();
+      initializeJarvis();
     };
     script.onerror = () => {
       console.error('Failed to load CryptoJS');
       showError('Failed to load encryption library. Some features may not work.');
-      initializeIfReady();
+      initializeJarvis();
     };
     document.head.appendChild(script);
 
-    // 100% Private Configuration
+    // Configuration
     const config = {
       userName: localStorage.getItem('jarvis-user-name') || "Sir",
       assistantName: "JARVIS Pro",
@@ -310,59 +310,42 @@
       }
     }
 
-    // DOM Elements
+    const storage = new SecureStorage();
     const responseContainer = document.getElementById('response-container');
     const statusElement = document.getElementById('status');
     const micButton = document.getElementById('micButton');
     const micIcon = document.getElementById('micIcon');
     const micText = document.getElementById('micText');
     const authButton = document.getElementById('authButton');
-    const storage = new SecureStorage();
 
-    // System State
     let recognition;
     let isListening = false;
-    let isInitialized = false;
     let speechSynthesis = window.speechSynthesis;
     let maleVoice;
-    let isCryptoLoaded = false;
-
-    // Initialize if ready
-    function initializeIfReady() {
-      if (isCryptoLoaded) {
-        initializeJarvis();
-      }
-    }
 
     // Initialize JARVIS
     async function initializeJarvis() {
       addMessage(config.assistantName, "Initializing secure systems...");
-      
-      // Load voices
       await loadVoices();
       
-      // Check speech recognition support
       if (!('webkitSpeechRecognition' in window)) {
         showError("Speech recognition not supported. Please use Chrome (version 25+).");
         return;
       }
       
-      // Explicitly request microphone permission and log status
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         console.log('Microphone permission confirmed');
         stream.getTracks().forEach(track => track.stop());
       } catch (error) {
-        showError(`Microphone access issue: ${error.message}. Please ensure permissions are enabled in Chrome settings and refresh the page.`);
+        showError(`Microphone access issue: ${error.message}. Please allow microphone permissions in Chrome settings and refresh the page.`);
         return;
       }
       
-      // Initialize encryption key if not exists
       if (!localStorage.getItem('jarvis-encryption-key')) {
         localStorage.setItem('jarvis-encryption-key', config.encryptionKey);
       }
       
-      isInitialized = true;
       updateStatus();
       addMessage(config.assistantName, `Secure systems online. ${config.isAuthenticated ? 'You are already authenticated.' : `Say "JARVIS" to verify voiceprint, ${config.userName}.`}`);
       if (!config.isAuthenticated) {
@@ -423,7 +406,7 @@
       updateStatus();
     }
 
-    // Update status display
+    // Update status
     function updateStatus() {
       let status = "Ready";
       if (config.isAuthenticated) {
@@ -455,37 +438,21 @@
       });
     }
 
-    // Voice synthesis
+    // Speak
     function speak(text) {
       if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
       }
-      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = config.defaultVoice.lang;
       utterance.rate = config.defaultVoice.rate;
       utterance.pitch = config.defaultVoice.pitch;
-      
-      if (maleVoice) {
-        utterance.voice = maleVoice;
-      } else {
-        console.warn('Male voice not found, using default');
-      }
-      
+      if (maleVoice) utterance.voice = maleVoice;
       speechSynthesis.speak(utterance);
     }
 
     // Toggle listening
-    async function toggleListening() {
-      if (!isInitialized) {
-        const initialized = await initializeJarvis();
-        if (!initialized) {
-          addMessage("System", "Initialization failed. Voice feature disabled. Other features remain available.");
-          micButton.disabled = true;
-          return;
-        }
-      }
-      
+    function toggleListening() {
       if (config.securityLevel === "strict" && !config.isAuthenticated) {
         addMessage("System", "Authentication required for strict security mode.");
         speak("Authentication required. Please verify your identity first.");
@@ -499,84 +466,59 @@
       }
     }
 
-    // Start speech recognition
+    // Start listening
     function startListening() {
-      try {
-        if (recognition) {
-          recognition.stop();
-          recognition = null;
-        }
-        
-        recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
-        if (!recognition) {
-          showError("Speech recognition API not available. Please use Chrome (version 25+).");
-          return;
-        }
-        
-        // Explicitly check permission state and force refresh
-        navigator.permissions.query({ name: 'microphone' }).then(permissionStatus => {
-          console.log('Microphone permission state:', permissionStatus.state);
-          if (permissionStatus.state === 'denied') {
-            showError("Microphone permission denied. Please check Chrome settings, allow access, and refresh the page.");
-            return;
-          }
-          
-          recognition.lang = 'en-IN';
-          recognition.interimResults = false;
-          recognition.maxAlternatives = 1;
-          recognition.continuous = false;
-          
-          recognition.onstart = () => {
-            isListening = true;
-            micButton.classList.add('listening');
-            micIcon.textContent = '🛑';
-            micText.textContent = 'Listening...';
-            statusElement.textContent = config.isAuthenticated 
-              ? 'Status: Listening (Authenticated)' 
-              : 'Status: Listening (Standard Mode)';
-            addMessage("System", "Listening for your command...");
-            console.log('Recognition started');
-          };
-          
-          recognition.onresult = (event) => {
-            const command = event.results[0][0].transcript.trim();
-            if (command.length >= 3) {
-              addMessage("You", command);
-              processCommand(command);
-            } else {
-              addMessage("System", "Command too short, please speak clearly.");
-            }
-          };
-          
-          recognition.onerror = (event) => {
-            console.error('Recognition error:', event.error);
-            showError(`Recognition error: ${event.error}. Please check microphone, ensure permissions are allowed, and refresh the page.`);
-            stopListening();
-          };
-          
-          recognition.onend = () => {
-            console.log('Recognition ended');
-            stopListening();
-          };
-          
-          recognition.start();
-        });
-      } catch (error) {
-        console.error('Start listening error:', error);
-        showError(`Failed to start recognition: ${error.message}. Please refresh the page or use a supported browser like Chrome.`);
-        stopListening();
-        micButton.disabled = true;
+      if (recognition) {
+        recognition.stop();
+        recognition = null;
       }
+      
+      recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
+      if (!recognition) {
+        showError("Speech recognition not supported. Please use Chrome (version 25+).");
+        return;
+      }
+      
+      recognition.lang = 'en-IN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      
+      recognition.onstart = () => {
+        isListening = true;
+        micButton.classList.add('listening');
+        micIcon.textContent = '🛑';
+        micText.textContent = 'Listening...';
+        statusElement.textContent = config.isAuthenticated ? 'Status: Listening (Authenticated)' : 'Status: Listening (Standard Mode)';
+        addMessage("System", "Listening for your command...");
+      };
+      
+      recognition.onresult = (event) => {
+        const command = event.results[0][0].transcript.trim();
+        if (command.length >= 3) {
+          addMessage("You", command);
+          processCommand(command);
+        } else {
+          addMessage("System", "Command too short, please speak clearly.");
+        }
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Recognition error:', event.error);
+        showError(`Recognition error: ${event.error}. Please check microphone and permissions.`);
+        stopListening();
+      };
+      
+      recognition.onend = () => {
+        stopListening();
+      };
+      
+      recognition.start();
     }
 
-    // Stop speech recognition
+    // Stop listening
     function stopListening() {
       if (recognition) {
-        try {
-          recognition.stop();
-        } catch (e) {
-          console.error('Stop error:', e);
-        }
+        recognition.stop();
         recognition = null;
       }
       isListening = false;
@@ -584,10 +526,9 @@
       micIcon.textContent = '🎤';
       micText.textContent = 'Start Listening';
       updateStatus();
-      micButton.disabled = false;
     }
 
-    // Enhanced NLP command processing
+    // Process command
     function processCommand(command) {
       const lowerCommand = command.toLowerCase();
       let response = "";
@@ -596,53 +537,42 @@
       if (lowerCommand.includes('jarvis') && !config.isAuthenticated) {
         verifyIdentity();
         return;
-      }
-      else if (/(message|text)\s+(.+?):(.+)/i.test(command) || /(message|text)\s+(\w+)\s+(.+)/i.test(command)) {
+      } else if (lowerCommand.includes('message') || lowerCommand.includes('text')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for messaging.";
         } else {
-          let contact, message;
-          if (/(message|text)\s+(.+?):(.+)/i.test(command)) {
-            const match = command.match(/(message|text)\s+(.+?):(.+)/i);
-            contact = match[2].trim().toLowerCase();
-            message = match[3].trim();
+          const match = lowerCommand.match(/(message|text)\s+(\w+)\s+(.+)/i) || lowerCommand.match(/(message|text)\s+(.+?):(.+)/i);
+          if (match) {
+            const contact = match[2].toLowerCase();
+            const message = match[3] || match[4];
+            if (config.contacts[contact]) {
+              const data = storage.loadData();
+              data.messages.push({ contact: config.contacts[contact].name, message, timestamp: new Date().toISOString() });
+              storage.saveData(data);
+              response = `Sending message to ${config.contacts[contact].name}: "${message}"`;
+            } else {
+              response = `Contact "${contact}" not found.`;
+            }
           } else {
-            const match = command.match(/(message|text)\s+(\w+)\s+(.+)/i);
-            contact = match[2].trim().toLowerCase();
-            message = match[3].trim();
-          }
-          if (config.contacts[contact]) {
-            const data = storage.loadData();
-            data.messages.push({ contact: config.contacts[contact].name, message, timestamp: new Date().toISOString() });
-            storage.saveData(data);
-            response = `Sending message to ${config.contacts[contact].name}: "${message}"`;
-          } else {
-            response = `Contact "${contact}" not found.`;
+            response = "Please specify a contact and message.";
           }
         }
-      }
-      else if (lowerCommand.includes('call last missed number')) {
+      } else if (lowerCommand.includes('call last missed number')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for calling.";
         } else {
           response = "Simulating call to last missed number (browser cannot make calls).";
         }
-      }
-      else if (lowerCommand.includes('turn on bluetooth') && lowerCommand.includes('play') && lowerCommand.includes('playlist')) {
+      } else if (lowerCommand.includes('turn on bluetooth') && lowerCommand.includes('play') && lowerCommand.includes('playlist')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for multi-step commands.";
         } else {
           config.deviceState.bluetooth = true;
-          const match = lowerCommand.match(/play\s+(\w+)\s+playlist/i);
-          const playlist = match ? match[1] : 'gym';
+          const playlist = lowerCommand.match(/play\s+(\w+)\s+playlist/i)?.[1] || 'gym';
           response = `Bluetooth turned on. Simulating playing ${playlist} playlist on Spotify.`;
-          action = () => {
-            console.log("Bluetooth enabled (simulated)");
-            openApp('spotify');
-          };
+          action = () => openApp('spotify');
         }
-      }
-      else if (lowerCommand.includes('take screenshot') && lowerCommand.includes('send to')) {
+      } else if (lowerCommand.includes('take screenshot') && lowerCommand.includes('send to')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for screenshot commands.";
         } else {
@@ -654,8 +584,7 @@
             response = `Contact "${contact}" not found.`;
           }
         }
-      }
-      else if (lowerCommand.includes('book uber') && lowerCommand.includes('text') && lowerCommand.includes('eta')) {
+      } else if (lowerCommand.includes('book uber') && lowerCommand.includes('text') && lowerCommand.includes('eta')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for booking commands.";
         } else {
@@ -670,15 +599,13 @@
             response = `Contact "${contact}" not found.`;
           }
         }
-      }
-      else if (lowerCommand.includes('turn on hotspot') || (lowerCommand.includes('brightness') && /\d+/.test(lowerCommand))) {
+      } else if (lowerCommand.includes('turn on hotspot') || (lowerCommand.includes('brightness') && /\d+/.test(lowerCommand))) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for device settings.";
         } else {
           if (lowerCommand.includes('hotspot')) {
             config.deviceState.hotspot = true;
             response = "Hotspot turned on successfully.";
-            action = () => console.log("Hotspot enabled (simulated)");
           }
           const brightnessMatch = lowerCommand.match(/brightness\s+(\d+)/i);
           if (brightnessMatch) {
@@ -687,15 +614,13 @@
               config.deviceState.brightness = level;
               response += response ? "\n" : "";
               response += `Brightness set to ${level}%.`;
-              action = () => console.log(`Brightness set to ${level}% (simulated)`);
             } else {
               response += response ? "\n" : "";
               response += "Please specify brightness between 0-100%.";
             }
           }
         }
-      }
-      else if (/(turn on|turn off|enable|disable)\s+(bluetooth|wifi|hotspot|volume)/i.test(lowerCommand)) {
+      } else if (/(turn on|turn off|enable|disable)\s+(bluetooth|wifi|hotspot|volume)/i.test(lowerCommand)) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for device settings.";
         } else {
@@ -714,34 +639,24 @@
           } else {
             config.deviceState[setting] = enable;
             response = `${setting.charAt(0).toUpperCase() + setting.slice(1)} ${enable ? 'turned on' : 'turned off'} successfully.`;
-            action = () => console.log(`${setting} ${enable ? 'enabled' : 'disabled'} (simulated)`);
           }
         }
-      }
-      else if (/open\s+(.+?)\s+in\s+(.+)/i.test(lowerCommand)) {
+      } else if (/open\s+(.+?)\s+in\s+(.+)/i.test(lowerCommand)) {
         const match = lowerCommand.match(/open\s+(.+?)\s+in\s+(.+)/i);
         const target = match[1].trim().toLowerCase();
         const browser = match[2].trim().toLowerCase();
         if (config.browserOptions[browser]) {
-          let url = '';
-          if (config.appDeepLinks[target]) {
-            url = config.appDeepLinks[target].web;
-          } else if (isValidURL(target)) {
-            url = target.startsWith('http') ? target : `https://${target}`;
-          }
+          let url = config.appDeepLinks[target]?.web || (isValidURL(target) ? (target.startsWith('http') ? target : `https://${target}`) : '');
           if (url) {
             response = `Opening ${target} in ${browser}.`;
-            action = () => {
-              window.location.href = `${config.browserOptions[browser]}${url}`;
-            };
+            action = () => window.location.href = `${config.browserOptions[browser]}${url}`;
           } else {
             response = `Cannot open ${target}. Invalid app or link.`;
           }
         } else {
           response = `Cannot open in ${browser}. Invalid browser.`;
         }
-      }
-      else if (lowerCommand.startsWith('open ')) {
+      } else if (lowerCommand.startsWith('open ')) {
         const target = lowerCommand.replace('open ', '').trim().toLowerCase();
         if (config.appDeepLinks[target]) {
           response = `Opening ${target}.`;
@@ -752,8 +667,7 @@
         } else {
           response = `I don't know how to open ${target}.`;
         }
-      }
-      else if (lowerCommand.includes('set reminder')) {
+      } else if (lowerCommand.includes('set reminder')) {
         if (config.securityLevel === "strict" && !config.isAuthenticated) {
           response = "Authentication required for reminders.";
         } else {
@@ -768,8 +682,7 @@
             response = "Please specify reminder details.";
           }
         }
-      }
-      else {
+      } else {
         response = "I didn't understand that command, Sir.";
       }
       
@@ -779,30 +692,13 @@
       stopListening();
     }
 
-    // Secure app opening
+    // Open app
     function openApp(appName) {
       const app = config.appDeepLinks[appName.toLowerCase()];
-      if (!app) {
-        showError(`No configuration found for ${appName}`);
-        return;
-      }
-      try {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = app.native;
-        document.body.appendChild(iframe);
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          if (!document.hidden && app.web) {
-            window.location.href = app.web;
-          }
-        }, 500);
-      } catch (e) {
-        if (app.web) window.location.href = app.web;
-      }
+      if (app && app.web) window.location.href = app.web;
     }
 
-    // Utility to validate URL
+    // Validate URL
     function isValidURL(string) {
       try {
         new URL(string);
@@ -816,7 +712,6 @@
     function addMessage(sender, text) {
       const messageDiv = document.createElement('div');
       messageDiv.classList.add('message');
-      
       if (sender === config.assistantName) {
         messageDiv.classList.add('jarvis-message');
         messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
@@ -827,27 +722,14 @@
         messageDiv.classList.add('user-message');
         messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
       }
-      
       responseContainer.appendChild(messageDiv);
-      scrollToBottom();
+      responseContainer.scrollTop = responseContainer.scrollHeight;
     }
 
     function showError(message) {
       addMessage("System", message);
       speak(message);
     }
-
-    function scrollToBottom() {
-      responseContainer.scrollTop = responseContainer.scrollHeight;
-    }
-
-    // Initialize on load
-    window.addEventListener('load', () => {
-      if (window.location.protocol !== 'https:' && !window.location.hostname.includes('localhost')) {
-        showError("For full security, please use HTTPS or localhost");
-      }
-      // Delay initialization until CryptoJS is loaded
-    });
   </script>
 </body>
 </html>
