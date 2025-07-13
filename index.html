@@ -13,7 +13,6 @@
       --card-bg: rgba(15, 20, 30, 0.9);
       --text-light: #c9d1d9;
     }
-    
     body {
       margin: 0;
       font-family: 'Segoe UI', system-ui, sans-serif;
@@ -27,7 +26,6 @@
       box-sizing: border-box;
       line-height: 1.6;
     }
-    
     .container {
       width: 100%;
       max-width: 800px;
@@ -37,7 +35,6 @@
       box-shadow: 0 0 30px rgba(88, 166, 255, 0.2);
       margin: auto;
     }
-    
     h1 {
       color: var(--jarvis-blue);
       text-shadow: 0 0 15px rgba(88, 166, 255, 0.5);
@@ -45,7 +42,6 @@
       font-size: 2rem;
       text-align: center;
     }
-    
     #response-container {
       margin: 25px 0;
       background-color: #161b22;
@@ -59,31 +55,26 @@
       flex-direction: column;
       gap: 15px;
     }
-    
     .message {
       padding: 10px 15px;
       border-radius: 8px;
       max-width: 80%;
       word-wrap: break-word;
     }
-    
     .user-message {
       background: rgba(88, 166, 255, 0.15);
       border-left: 3px solid var(--jarvis-blue);
       align-self: flex-end;
     }
-    
     .jarvis-message {
       background: rgba(63, 185, 80, 0.15);
       border-left: 3px solid var(--jarvis-green);
       align-self: flex-start;
     }
-    
     .error-message {
       background: rgba(255, 123, 114, 0.15);
       border-left: 3px solid var(--jarvis-red);
     }
-    
     .controls {
       display: flex;
       gap: 15px;
@@ -91,7 +82,6 @@
       flex-wrap: wrap;
       margin-top: 20px;
     }
-    
     button {
       background-color: var(--jarvis-green);
       color: white;
@@ -108,67 +98,55 @@
       justify-content: center;
       gap: 8px;
     }
-    
     button:hover {
       background-color: #2ea043;
       transform: translateY(-2px);
     }
-    
     button:active {
       transform: translateY(0);
     }
-    
     #micButton.listening {
       animation: pulse 1.5s infinite;
       background-color: var(--jarvis-red);
     }
-    
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(255, 123, 114, 0.7); }
       70% { box-shadow: 0 0 0 12px rgba(255, 123, 114, 0); }
       100% { box-shadow: 0 0 0 0 rgba(255, 123, 114, 0); }
     }
-    
     .status {
       text-align: center;
       margin: 15px 0;
       font-size: 0.9rem;
       color: #8b949e;
     }
-    
     .command-list {
       background: rgba(22, 27, 34, 0.7);
       padding: 15px;
       border-radius: 8px;
       margin-top: 25px;
     }
-    
     .command-list h3 {
       color: var(--jarvis-blue);
       margin-top: 0;
       margin-bottom: 10px;
     }
-    
     .command-list ul {
       padding-left: 20px;
       margin: 0;
       columns: 2;
     }
-    
     .command-list li {
       margin-bottom: 8px;
       break-inside: avoid;
     }
-    
     @media (max-width: 600px) {
       .container {
         padding: 15px;
       }
-      
       .command-list ul {
         columns: 1;
       }
-      
       button {
         min-width: 100%;
       }
@@ -178,415 +156,209 @@
 <body>
   <div class="container">
     <h1>JARVIS Pro</h1>
-    <p style="text-align: center;">Your complete AI assistant. Speak naturally in English or Hinglish.</p>
-    
+    <p style="text-align: center;">Speak naturally in English or Hindi. Your dual-language AI Assistant.</p>
     <div id="response-container">
       <div class="message jarvis-message">JARVIS: Initializing systems...</div>
     </div>
-    
     <div class="status" id="status">Status: Ready</div>
-    
     <div class="controls">
       <button id="micButton" onclick="toggleListening()">
         <span id="micIcon">🎤</span> <span id="micText">Start Listening</span>
       </button>
-      <button onclick="resetConversation()">
-        🔄 Reset Conversation
-      </button>
+      <button onclick="resetConversation()">🔄 Reset Conversation</button>
     </div>
-    
     <div class="command-list">
       <h3>Available Commands:</h3>
       <ul>
-        <li>"Open YouTube/Gmail"</li>
-        <li>"Open Phone/Camera/Gallery"</li>
-        <li>"Open Facebook/Instagram"</li>
-        <li>"Play music/lofi"</li>
-        <li>"What's the time?"</li>
-        <li>"Show me the news"</li>
-        <li>"Who is [person]?"</li>
-        <li>"How's the weather?"</li>
-        <li>"Tell me a joke"</li>
-        <li>"Calculate [math problem]"</li>
-        <li>"Stop listening"</li>
+        <li>"Open YouTube, WhatsApp, Instagram..."</li>
+        <li>"Play music" or "lofi music"</li>
+        <li>"What's the time?" or "Samay kya hai?"</li>
+        <li>"Show me the news" or "Khabar dikhao"</li>
+        <li>"How's the weather?" or "Mausam kaise hai?"</li>
+        <li>"Who is [person]" or "Kaun hai [name]?"</li>
+        <li>"Stop listening" or "Band ho jao"</li>
       </ul>
     </div>
   </div>
-
   <script>
-    // Enhanced System Configuration
-    const config = {
-      userName: "Sir",
-      assistantName: "JARVIS Pro",
-      defaultVoice: {
-        lang: 'en-IN',
-        rate: 1.0,
-        pitch: 0.9
-      },
-      appDeepLinks: {
-        // Native app deep links
-        youtube: "vnd.youtube://",
-        phone: "tel:",
-        contacts: "content://contacts/people/",
-        camera: "android.media.action.IMAGE_CAPTURE",
-        gallery: "content://media/external/images/media",
-        settings: "android.settings.SETTINGS",
-        calculator: "calc:",
-        clock: "clock:",
-        messages: "sms:",
-        facebook: "fb://",
-        instagram: "instagram://",
-        twitter: "twitter://",
-        whatsapp: "whatsapp://",
-        chrome: "googlechrome://",
-        photos: "googlephotos://",
-        drive: "googledrive://",
-        playstore: "market://",
-        music: "com.google.android.music://",
-        maps: "google.navigation://",
-        gmail: "googlegmail://"
-      },
-      webFallbacks: {
-        youtube: "https://youtube.com",
-        music: "https://music.youtube.com",
-        news: "https://news.google.com",
-        maps: "https://maps.google.com",
-        gmail: "https://mail.google.com",
-        whatsapp: "https://web.whatsapp.com",
-        facebook: "https://facebook.com",
-        instagram: "https://instagram.com",
-        twitter: "https://twitter.com"
-      }
-    };
-
-    // DOM Elements
-    const responseContainer = document.getElementById('response-container');
-    const statusElement = document.getElementById('status');
-    const micButton = document.getElementById('micButton');
-    const micIcon = document.getElementById('micIcon');
-    const micText = document.getElementById('micText');
-    
-    // System State
-    let recognition;
-    let isListening = false;
-    let isInitialized = false;
-    let speechSynthesis = window.speechSynthesis;
-    let maleVoice;
-
-    // Initialize JARVIS
-    async function initializeJarvis() {
-      addMessage(config.assistantName, "Initializing all systems...");
-      
-      // Load voices
-      await loadVoices();
-      
-      // Check for speech recognition support
-      if (!('webkitSpeechRecognition' in window)) {
-        showError("Speech recognition not supported in your browser");
-        return false;
-      }
-      
-      // Check microphone permissions
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(track => track.stop());
-      } catch (error) {
-        showError("Microphone access denied. Please enable permissions.");
-        return false;
-      }
-      
-      isInitialized = true;
-      addMessage(config.assistantName, `Systems online. How may I assist you today, ${config.userName}?`);
-      speak(`Systems online. How may I assist you today, ${config.userName}?`);
-      return true;
+    // JavaScript code will be injected here (due to length limit)
+  const config = {
+    userName: "Sir",
+    assistantName: "JARVIS",
+    defaultVoice: { lang: 'en-IN', rate: 1.0, pitch: 0.9 },
+    appDeepLinks: {
+      youtube: "vnd.youtube://",
+      camera: "android.media.action.IMAGE_CAPTURE",
+      gallery: "content://media/external/images/media",
+      gmail: "googlegmail://",
+      music: "com.google.android.music://",
+      maps: "google.navigation://",
+      whatsapp: "whatsapp://",
+      instagram: "instagram://"
+    },
+    webFallbacks: {
+      youtube: "https://youtube.com",
+      music: "https://music.youtube.com",
+      news: "https://news.google.com",
+      maps: "https://maps.google.com",
+      gmail: "https://mail.google.com",
+      whatsapp: "https://web.whatsapp.com",
+      instagram: "https://instagram.com"
     }
+  };
 
-    // Load available voices
-    function loadVoices() {
-      return new Promise((resolve) => {
-        const voices = speechSynthesis.getVoices();
-        if (voices.length > 0) {
-          maleVoice = voices.find(v => v.name.includes('Male') || v.lang.includes('en'));
-          resolve();
-        } else {
-          speechSynthesis.onvoiceschanged = () => {
-            maleVoice = speechSynthesis.getVoices().find(v => v.name.includes('Male') || v.lang.includes('en'));
-            resolve();
-          };
-        }
-      });
-    }
+  const micButton = document.getElementById("micButton");
+  const micIcon = document.getElementById("micIcon");
+  const micText = document.getElementById("micText");
+  const statusElement = document.getElementById("status");
+  const responseContainer = document.getElementById("response-container");
+  let recognition, isListening = false;
+  let maleEnglishVoice = null, maleHindiVoice = null;
 
-    // Voice synthesis
-    function speak(text) {
-      if (speechSynthesis.speaking) {
-        speechSynthesis.cancel();
-      }
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = config.defaultVoice.lang;
-      utterance.rate = config.defaultVoice.rate;
-      utterance.pitch = config.defaultVoice.pitch;
-      
-      if (maleVoice) {
-        utterance.voice = maleVoice;
-      }
-      
-      utterance.onend = () => {
-        if (isListening) {
-          setTimeout(startListening, 500);
-        }
-      };
-      
-      speechSynthesis.speak(utterance);
-    }
+  window.onload = () => {
+    initializeJarvis();
+  };
 
-    // Toggle listening state
-    async function toggleListening() {
-      if (!isInitialized) {
-        const initialized = await initializeJarvis();
-        if (!initialized) return;
-      }
-      
-      if (isListening) {
-        stopListening();
-      } else {
-        startListening();
-      }
-    }
-
-    // Start speech recognition (Optimized Version)
-    function startListening() {
-      try {
-        if (recognition) {
-          recognition.stop();
-          recognition = null;
-        }
-        
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-IN';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-        recognition.continuous = false; // Single utterance mode
-        
-        recognition.onstart = () => {
-          isListening = true;
-          micButton.classList.add('listening');
-          micIcon.textContent = '🛑';
-          micText.textContent = 'Listening...';
-          statusElement.textContent = 'Status: Active (Speak Now)';
-          addMessage("System", "Ready for your command...");
-        };
-        
-        recognition.onresult = (event) => {
-          const command = event.results[0][0].transcript;
-          if (command.trim().length > 2) { // Minimum 3 characters
-            addMessage("You", command);
-            processCommand(command);
-          }
-        };
-        
-        recognition.onerror = (event) => {
-          if (event.error !== 'no-speech') { // Ignore background noise
-            showError(`Error: ${event.error}`);
-          }
-          stopListening();
-        };
-        
-        recognition.onend = () => {
-          if (isListening) {
-            setTimeout(startListening, 1000); // Restart with delay
-          }
-        };
-        
-        recognition.start();
-      } catch (error) {
-        showError(`Failed to start recognition: ${error}`);
-      }
-    }
-
-    // Stop speech recognition
-    function stopListening() {
-      if (recognition) {
-        recognition.stop();
-      }
-      isListening = false;
-      micButton.classList.remove('listening');
-      micIcon.textContent = '🎤';
-      micText.textContent = 'Start Listening';
-      statusElement.textContent = 'Status: Ready';
-      addMessage("System", "Listening stopped");
-    }
-
-    // Enhanced app opening with proper fallback
-    function openAppOrWebsite(appKey) {
-      const deepLink = config.appDeepLinks[appKey];
-      const webUrl = config.webFallbacks[appKey];
-      
-      if (!deepLink && !webUrl) {
-        showError(`No configuration found for ${appKey}`);
-        return;
-      }
-      
-      // Try native app first
-      if (deepLink) {
-        try {
-          const iframe = document.createElement('iframe');
-          iframe.style.display = 'none';
-          iframe.src = deepLink;
-          document.body.appendChild(iframe);
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-            // Check if we're still on the page (app didn't open)
-            if (!document.hidden && webUrl) {
-              window.location.href = webUrl;
-            }
-          }, 500);
-        } catch (e) {
-          if (webUrl) window.location.href = webUrl;
-        }
-      } else if (webUrl) {
-        window.location.href = webUrl;
-      }
-    }
-
-    // Enhanced processCommand()
-    function processCommand(command) {
-      const lowerCommand = command.toLowerCase();
-      let response = "";
-      let appKey = "";
-      
-      // Extract app name from "open [appname]" commands
-      if (lowerCommand.startsWith('open ')) {
-        const requestedApp = lowerCommand.replace('open ', '').trim();
-        
-        // Find matching app key (supports partial matches)
-        appKey = Object.keys(config.appDeepLinks).find(key => 
-          key.includes(requestedApp) || requestedApp.includes(key)
-        ) || requestedApp;
-        
-        if (appKey && (config.appDeepLinks[appKey] || config.webFallbacks[appKey])) {
-          response = `Opening ${appKey}, Sir.`;
-          addMessage(config.assistantName, response);
-          speak(response);
-          openAppOrWebsite(appKey);
-          stopListening();
-          return;
-        }
-      }
-      
-      // Specific command processing
-      if (lowerCommand.includes('youtube')) {
-        response = "Opening YouTube, Sir.";
-        addMessage(config.assistantName, response);
-        speak(response);
-        openAppOrWebsite('youtube');
-      }
-      else if (lowerCommand.includes('play music') || lowerCommand.includes('lofi')) {
-        response = "Playing music, Sir.";
-        addMessage(config.assistantName, response);
-        speak(response);
-        openAppOrWebsite('music');
-      }
-      else if (lowerCommand.includes('gmail') || lowerCommand.includes('email')) {
-        response = "Opening Gmail, Sir.";
-        addMessage(config.assistantName, response);
-        speak(response);
-        openAppOrWebsite('gmail');
-      }
-      else if (lowerCommand.includes('whatsapp')) {
-        response = "Opening WhatsApp, Sir.";
-        addMessage(config.assistantName, response);
-        speak(response);
-        openAppOrWebsite('whatsapp');
-      }
-      else if (lowerCommand.includes('time') || lowerCommand.includes('samay')) {
-        const now = new Date();
-        response = `It's ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
-        addMessage(config.assistantName, response);
-        speak(response);
-      }
-      else if (lowerCommand.includes('news') || lowerCommand.includes('khabar')) {
-        response = "Showing news headlines, Sir.";
-        addMessage(config.assistantName, response);
-        speak(response);
-        openAppOrWebsite('news');
-      }
-      else if (lowerCommand.includes('map') || lowerCommand.includes('location')) {
-        response = "Opening Google Maps, Sir.";
-        addMessage(config.assistantName, response);
-        speak(response);
-        openAppOrWebsite('maps');
-      }
-      else if (lowerCommand.includes('who is') || lowerCommand.includes('cm of')) {
-        const query = command.split('who is')[1] || command.split('cm of')[1] || "";
-        response = `Searching for ${query.trim() || 'that'}, Sir.`;
-        addMessage(config.assistantName, response);
-        speak(response);
-        window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-      }
-      else if (lowerCommand.includes('weather') || lowerCommand.includes('mausam')) {
-        response = "Checking weather, Sir.";
-        addMessage(config.assistantName, response);
-        speak(response);
-        window.location.href = "https://www.google.com/search?q=weather";
-      }
-      else if (lowerCommand.includes('stop') || lowerCommand.includes('band')) {
-        response = "Standing by, Sir.";
-        addMessage(config.assistantName, response);
-        speak(response);
-        stopListening();
-      }
-      else {
-        response = "I didn't understand that command, Sir.";
-        addMessage(config.assistantName, response);
-        speak(response);
-      }
-      
-      stopListening();
-    }
-
-    // UI Helpers
-    function addMessage(sender, text) {
-      const messageDiv = document.createElement('div');
-      messageDiv.classList.add('message');
-      
-      if (sender === config.assistantName) {
-        messageDiv.classList.add('jarvis-message');
-        messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
-      } else if (sender === "System") {
-        messageDiv.classList.add('error-message');
-        messageDiv.innerHTML = `<em>${text}</em>`;
-      } else {
-        messageDiv.classList.add('user-message');
-        messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
-      }
-      
-      responseContainer.appendChild(messageDiv);
-      scrollToBottom();
-    }
-
-    function showError(message) {
-      addMessage("System", message);
-    }
-
-    function scrollToBottom() {
-      responseContainer.scrollTop = responseContainer.scrollHeight;
-    }
-
-    function resetConversation() {
-      responseContainer.innerHTML = '';
-      addMessage(config.assistantName, "Conversation reset. How may I assist you, Sir?");
-      speak("Conversation reset. How may I assist you, Sir?");
-    }
-
-    // Initialize on load
-    window.addEventListener('load', () => {
-      if (window.location.protocol !== 'https:' && !window.location.hostname.includes('localhost')) {
-        showError("For full functionality, please use HTTPS or localhost");
-      }
-      initializeJarvis();
+  function initializeJarvis() {
+    loadVoices().then(() => {
+      speak("सिस्टम चालू है। मैं आपकी कैसे मदद कर सकता हूँ?", 'hi');
+      addMessage(config.assistantName, "सिस्टम तैयार है, सर।");
     });
-  </script>
+  }
+
+  function loadVoices() {
+    return new Promise((resolve) => {
+      function setVoices() {
+        const voices = speechSynthesis.getVoices();
+        maleEnglishVoice = voices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('male')) ||
+                           voices.find(v => v.lang === 'en-IN');
+        maleHindiVoice = voices.find(v => v.lang === 'hi-IN' && v.name.toLowerCase().includes('male')) ||
+                         voices.find(v => v.lang === 'hi-IN');
+        resolve();
+      }
+      if (speechSynthesis.getVoices().length > 0) {
+        setVoices();
+      } else {
+        speechSynthesis.onvoiceschanged = setVoices;
+      }
+    });
+  }
+
+  function speak(text, lang = 'en') {
+    if (speechSynthesis.speaking) speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    if (lang === 'hi' && maleHindiVoice) {
+      utter.voice = maleHindiVoice;
+      utter.lang = 'hi-IN';
+    } else if (lang === 'en' && maleEnglishVoice) {
+      utter.voice = maleEnglishVoice;
+      utter.lang = 'en-IN';
+    } else {
+      utter.lang = config.defaultVoice.lang;
+    }
+    utter.pitch = config.defaultVoice.pitch;
+    utter.rate = config.defaultVoice.rate;
+    speechSynthesis.speak(utter);
+  }
+
+  function toggleListening() {
+    isListening ? stopListening() : startListening();
+  }
+
+  function startListening() {
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "en-IN";
+    recognition.onstart = () => {
+      isListening = true;
+      micButton.classList.add("listening");
+      micIcon.textContent = "🛑";
+      micText.textContent = "Listening...";
+      statusElement.textContent = "Status: Listening...";
+    };
+    recognition.onresult = (event) => {
+      const command = event.results[0][0].transcript;
+      addMessage("You", command);
+      processCommand(command.toLowerCase());
+    };
+    recognition.onerror = () => stopListening();
+    recognition.onend = () => isListening && startListening();
+    recognition.start();
+  }
+
+  function stopListening() {
+    if (recognition) recognition.stop();
+    isListening = false;
+    micButton.classList.remove("listening");
+    micIcon.textContent = "🎤";
+    micText.textContent = "Start Listening";
+    statusElement.textContent = "Status: Ready";
+  }
+
+  function processCommand(cmd) {
+    const isHindi = /kya|kaun|kaise|mausam|samay|khabar/.test(cmd);
+    const lang = isHindi ? 'hi' : 'en';
+
+    if (cmd.includes("open")) {
+      let key = Object.keys(config.appDeepLinks).find(k => cmd.includes(k));
+      if (key) return openAppOrSite(key, lang === 'hi' ? `खोल रहा हूँ ${key}` : `Opening ${key}`, lang);
+    }
+
+    if (cmd.includes("youtube")) return openAppOrSite("youtube", lang === 'hi' ? "यूट्यूब खोल रहा हूँ" : "Opening YouTube", lang);
+    if (cmd.includes("music") || cmd.includes("lofi")) return openAppOrSite("music", lang === 'hi' ? "संगीत चला रहा हूँ" : "Playing music", lang);
+    if (cmd.includes("gmail")) return openAppOrSite("gmail", lang === 'hi' ? "जीमेल खोल रहा हूँ" : "Opening Gmail", lang);
+    if (cmd.includes("instagram")) return openAppOrSite("instagram", lang === 'hi' ? "इंस्टाग्राम खोल रहा हूँ" : "Opening Instagram", lang);
+    if (cmd.includes("whatsapp")) return openAppOrSite("whatsapp", lang === 'hi' ? "व्हाट्सएप खोल रहा हूँ" : "Opening WhatsApp", lang);
+    if (cmd.includes("weather") || cmd.includes("mausam")) return openGoogleSearch("weather", lang);
+    if (cmd.includes("news") || cmd.includes("khabar")) return openAppOrSite("news", lang === 'hi' ? "ताज़ा खबरें दिखा रहा हूँ" : "Here are today's news", lang);
+    if (cmd.includes("time") || cmd.includes("samay")) return tellTime(lang);
+    if (cmd.includes("who is") || cmd.includes("kaun hai")) return openGoogleSearch(cmd, lang);
+    if (cmd.includes("stop") || cmd.includes("band")) return stopListening();
+
+    speak(lang === 'hi' ? "माफ़ कीजिए, मैं समझ नहीं पाया।" : "Sorry, I didn't understand.", lang);
+    addMessage(config.assistantName, lang === 'hi' ? "मैं समझ नहीं पाया।" : "Sorry, I didn't catch that.");
+  }
+
+  function openAppOrSite(key, message, lang) {
+    speak(message, lang);
+    addMessage(config.assistantName, message);
+    const deep = config.appDeepLinks[key];
+    const web = config.webFallbacks[key];
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = deep;
+    document.body.appendChild(iframe);
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+      if (!document.hidden && web) window.open(web, "_blank");
+    }, 500);
+  }
+
+  function openGoogleSearch(query, lang) {
+    speak(lang === 'hi' ? "गूगल पर खोज रहा हूँ।" : "Searching Google.", lang);
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank");
+  }
+
+  function tellTime(lang) {
+    const time = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    const response = lang === 'hi' ? `अभी का समय है ${time}` : `It's ${time}`;
+    speak(response, lang);
+    addMessage(config.assistantName, response);
+  }
+
+  function addMessage(sender, text) {
+    const msg = document.createElement("div");
+    msg.className = "message";
+    msg.classList.add(sender === config.assistantName ? "jarvis-message" : sender === "You" ? "user-message" : "error-message");
+    msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    responseContainer.appendChild(msg);
+    responseContainer.scrollTop = responseContainer.scrollHeight;
+  }
+
+  function resetConversation() {
+    responseContainer.innerHTML = '';
+    addMessage(config.assistantName, "Conversation reset. Ready when you are.");
+    speak("Conversation reset. Ready when you are.");
+  }
+</script>
 </body>
 </html>
